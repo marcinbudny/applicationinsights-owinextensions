@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationInsights.OwinExtensions", "ApplicationInsights.OwinExtensions\ApplicationInsights.OwinExtensions.csproj", "{2D1FD261-30CF-4E44-9FB3-6D009443F9A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationInsights.OwinExtensions.Tests", "ApplicationInsights.OwinExtensions.Tests\ApplicationInsights.OwinExtensions.Tests.csproj", "{47DFA604-32F1-4D44-AA56-7E09BC6C87FC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{DF27FAE2-931F-4754-B345-DED55937AA77}"
+	ProjectSection(SolutionItems) = preProject
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D1FD261-30CF-4E44-9FB3-6D009443F9A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D1FD261-30CF-4E44-9FB3-6D009443F9A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D1FD261-30CF-4E44-9FB3-6D009443F9A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D1FD261-30CF-4E44-9FB3-6D009443F9A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47DFA604-32F1-4D44-AA56-7E09BC6C87FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47DFA604-32F1-4D44-AA56-7E09BC6C87FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47DFA604-32F1-4D44-AA56-7E09BC6C87FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47DFA604-32F1-4D44-AA56-7E09BC6C87FC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

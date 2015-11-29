@@ -1,0 +1,11 @@
+source https://nuget.org/api/v2
+
+nuget xunit
+nuget xunit.runner.console
+nuget Moq
+nuget FluentAssertions
+nuget Microsoft.Owin
+nuget Microsoft.Owin.SelfHost
+nuget Microsoft.AspNet.WebApi.OwinSelfHost
+nuget Microsoft.ApplicationInsights
+nuget Microsoft.ApplicationInsights.DependencyCollector
