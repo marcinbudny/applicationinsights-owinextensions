@@ -47,6 +47,7 @@
     <Compile Include="OperationIdContextMiddlewareTests.cs" />
     <Compile Include="OperationIdContextTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RestoreOperationIdContextMiddlewareTests.cs" />
     <Compile Include="Utils\MockOwinContext.cs" />
     <Compile Include="Utils\MockTelemetryChannel.cs" />
     <Compile Include="Utils\NoopMiddleware.cs" />
@@ -55,7 +56,9 @@
     <Compile Include="WebApiIntegrationTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="paket.references" />
   </ItemGroup>
   <ItemGroup>
