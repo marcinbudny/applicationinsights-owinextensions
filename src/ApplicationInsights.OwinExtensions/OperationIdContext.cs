@@ -7,7 +7,7 @@ namespace ApplicationInsights.OwinExtensions
         private const string OperationIdContextKey = "APPLICATION_INSIGHTS_OPERATION_ID_CONTEXT";
 
         private static IIdGenerationStrategy _strategy = new GuidIdGenerationStrategy();
-
+        //  TODO: remove comments
         //private static readonly AsyncLocal<string> _operationContext = new AsyncLocal<string>();
 
         public static void UseIdGenerationStrategy(IIdGenerationStrategy strategy)

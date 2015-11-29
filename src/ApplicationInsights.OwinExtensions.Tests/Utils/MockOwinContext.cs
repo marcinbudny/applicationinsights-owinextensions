@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -11,6 +10,9 @@ namespace ApplicationInsights.OwinExtensions.Tests.Utils
     {
         public T Get<T>(string key)
         {
+            if (!Environment.ContainsKey(key))
+                return default(T);
+
             return (T)Environment[key];
         }
 
