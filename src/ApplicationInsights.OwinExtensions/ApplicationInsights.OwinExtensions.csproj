@@ -51,7 +51,7 @@
     <Compile Include="RestoreOperationIdContextMiddleware.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ApplicationInsights.OwinExtensions.paket.template" />
+    <None Include="ApplicationInsights.OwinExtensions.csproj.paket.template" />
     <None Include="paket.references" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
