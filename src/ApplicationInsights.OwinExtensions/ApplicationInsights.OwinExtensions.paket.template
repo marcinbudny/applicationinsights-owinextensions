@@ -1,0 +1,7 @@
+﻿type project
+id ApplicationInsights.OwinExtensions
+licenseUrl https://github.com/marcinbudny/applicationinsights-owinextensions/blob/master/LICENSE
+authors Marcin Budny
+description
+	Set of extensions for integrating OWIN based applications with Application Insights
+projectUrl https://github.com/marcinbudny/applicationinsights-owinextensions
