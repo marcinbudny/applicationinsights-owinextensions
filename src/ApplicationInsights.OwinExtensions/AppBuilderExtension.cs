@@ -5,11 +5,17 @@ namespace ApplicationInsights.OwinExtensions
 {
     public static class AppBuilderExtension
     {
-        public static IAppBuilder UseApplicationInsights(this IAppBuilder builer, TelemetryConfiguration configuration = null)
+        public static IAppBuilder UseApplicationInsights(this IAppBuilder builder, TelemetryConfiguration configuration = null)
         {
-            builer.Use<OperationIdContextMiddleware>();
-            builer.Use<HttpRequestTrackingMiddleware>(configuration);
-            return builer;
+            builder.Use<OperationIdContextMiddleware>();
+            builder.Use<HttpRequestTrackingMiddleware>(configuration);
+            return builder;
+        }
+
+        public static IAppBuilder RestoreOperationIdContext(this IAppBuilder builder)
+        {
+            builder.Use<RestoreOperationIdContextMiddleware>();
+            return builder;
         }
     }
 }
