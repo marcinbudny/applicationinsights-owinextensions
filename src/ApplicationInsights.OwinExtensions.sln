@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApplicationInsights.OwinExtensions", "ApplicationInsights.OwinExtensions\ApplicationInsights.OwinExtensions.csproj", "{2D1FD261-30CF-4E44-9FB3-6D009443F9A5}"
 EndProject
@@ -10,7 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{DF27FAE2-931F-4754-B345-DED55937AA77}"
 	ProjectSection(SolutionItems) = preProject
 		paket.dependencies = paket.dependencies
-		paket.lock = paket.lock
 	EndProjectSection
 EndProject
 Global

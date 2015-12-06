@@ -4,8 +4,8 @@ nuget xunit
 nuget xunit.runner.console
 nuget Moq
 nuget FluentAssertions
-nuget Microsoft.Owin
+nuget Microsoft.Owin >= 2.0.2
 nuget Microsoft.Owin.SelfHost
 nuget Microsoft.AspNet.WebApi.OwinSelfHost
-nuget Microsoft.ApplicationInsights
+nuget Microsoft.ApplicationInsights >= 1.2 < 2
 nuget Microsoft.ApplicationInsights.DependencyCollector
