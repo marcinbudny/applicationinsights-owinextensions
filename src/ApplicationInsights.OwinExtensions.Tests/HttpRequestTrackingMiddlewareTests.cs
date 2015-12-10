@@ -46,15 +46,16 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // then
             channel.SentTelemetries.Count.Should().Be(1);
 
-            var requestTelemetry = channel.SentTelemetries.First() as RequestTelemetry;
-            requestTelemetry.Should().NotBeNull();
+            var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
+            telemetry.Should().NotBeNull();
 
-            requestTelemetry.HttpMethod.Should().Be("GET");
-            requestTelemetry.Name.Should().Be("GET /path");
-            requestTelemetry.Id.Should().NotBeNullOrEmpty();
-            requestTelemetry.Success.Should().BeTrue();
-            requestTelemetry.Url.Should().Be(new Uri("http://google.com/path"));
-            requestTelemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
+            telemetry.HttpMethod.Should().Be("GET");
+            telemetry.Name.Should().Be("GET /path");
+            telemetry.Context.Operation.Name.Should().Be("GET /path");
+            telemetry.Id.Should().NotBeNullOrEmpty();
+            telemetry.Success.Should().BeTrue();
+            telemetry.Url.Should().Be(new Uri("http://google.com/path"));
+            telemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
         }
 
         [Theory]
@@ -95,8 +96,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
-            var requestTelemetry = channel.SentTelemetries.First() as RequestTelemetry;
-            requestTelemetry.Success.Should().Be(expectedSuccess);
+            var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
+            telemetry.Success.Should().Be(expectedSuccess);
         }
 
     }

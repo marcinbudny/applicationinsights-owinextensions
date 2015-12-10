@@ -55,6 +55,8 @@ namespace ApplicationInsights.OwinExtensions
                 Url = uri
             };
 
+            telemetry.Context.Operation.Name = name;
+
             _client.TrackRequest(telemetry);
         }
     }
