@@ -17,7 +17,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task Can_Restore_Operation_Context_Id_From_Owin_Context()
         {
             var context = new MockOwinContext();
-            context.Set("OperationIdContext", "test");
+            context.Set(Consts.OperationIdContextKey, "test");
 
             var collector = new OperationIdCollectingMiddleware();
             var sut = new RestoreOperationIdContextMiddleware(collector);

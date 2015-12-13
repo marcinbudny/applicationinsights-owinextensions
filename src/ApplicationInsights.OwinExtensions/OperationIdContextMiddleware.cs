@@ -12,8 +12,7 @@ namespace ApplicationInsights.OwinExtensions
         public override async Task Invoke(IOwinContext context)
         {
             OperationIdContext.Create();
-            // TODO: use constant and add namespace
-            context.Set("OperationIdContext", OperationIdContext.Get());
+            context.Set(Consts.OperationIdContextKey, OperationIdContext.Get());
 
             try
             {
@@ -21,7 +20,7 @@ namespace ApplicationInsights.OwinExtensions
             }
             finally
             {
-                context.Set<string>("OperationIdContext", null);
+                context.Set<string>(Consts.OperationIdContextKey, null);
                 OperationIdContext.Clear();
             }
         }

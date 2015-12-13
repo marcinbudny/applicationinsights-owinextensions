@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="AppBuilderExtension.cs" />
     <Compile Include="IdGenerationStrategy.cs" />
+    <Compile Include="Consts.cs" />
     <Compile Include="OperationIdContext.cs" />
     <Compile Include="OperationIdContextMiddleware.cs" />
     <Compile Include="OperationIdTelemetryInitializer.cs" />

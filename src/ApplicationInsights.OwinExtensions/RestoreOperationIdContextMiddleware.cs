@@ -11,7 +11,7 @@ namespace ApplicationInsights.OwinExtensions
 
         public override async Task Invoke(IOwinContext context)
         {
-            var operationId = context.Get<string>("OperationIdContext");
+            var operationId = context.Get<string>(Consts.OperationIdContextKey);
             if(operationId != null)
                 OperationIdContext.Set(operationId);
 

@@ -28,7 +28,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             var sut = new OperationIdContextMiddleware(new NoopMiddleware());
             await sut.Invoke(context);
 
-            context.Get<string>("OperationIdContext").Should().BeNull();
+            context.Get<string>(Consts.OperationIdContextKey).Should().BeNull();
             OperationIdContext.Get().Should().BeNull();
         }
     }

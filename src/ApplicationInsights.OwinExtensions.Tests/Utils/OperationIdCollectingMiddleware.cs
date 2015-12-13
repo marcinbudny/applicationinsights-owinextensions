@@ -14,7 +14,7 @@ namespace ApplicationInsights.OwinExtensions.Tests.Utils
 
         public override Task Invoke(IOwinContext context)
         {
-            OperationIdFromEnvironment = context.Get<string>("OperationIdContext");
+            OperationIdFromEnvironment = context.Get<string>(Consts.OperationIdContextKey);
             OperationIdFromAmbientContext = OperationIdContext.Get();
 
             if(Next == null)
