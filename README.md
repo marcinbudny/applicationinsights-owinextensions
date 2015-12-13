@@ -68,7 +68,7 @@ and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
 
 ## How this stuff works
 
-First middleware in the pipeline establishes a new Operation Id context (`Guid.NewGuid()` by default). This value is stored both in OWIN environment dictionary under the `OperationIdContext` key, and in the [CallContext](https://msdn.microsoft.com/en-US/library/system.runtime.remoting.messaging.callcontext). There is the [OperationIdContext](src\ApplicationInsights.OwinExtensions\OperationIdContext.cs) class that can be used to access the current value of Operation Id from anywhere withing the call context. The telemetry initializer makes use of that and sets appropriate property on the telemetries.
+First middleware in the pipeline establishes a new Operation Id context (`Guid.NewGuid()` by default). This value is stored both in OWIN environment dictionary under the `ApplicationInsights.OwinExtensions.OperationIdContext` key, and in the [CallContext](https://msdn.microsoft.com/en-US/library/system.runtime.remoting.messaging.callcontext). There is the [OperationIdContext](src\ApplicationInsights.OwinExtensions\OperationIdContext.cs) class that can be used to access the current value of Operation Id from anywhere withing the call context. The telemetry initializer makes use of that and sets appropriate property on the telemetries.
 
 ## Contributing
 
