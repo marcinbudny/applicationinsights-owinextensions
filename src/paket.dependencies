@@ -1,6 +1,9 @@
 framework: auto-detect
 source https://nuget.org/api/v2
 
+nuget Microsoft.AspNet.WebApi.Owin
+nuget Microsoft.Owin.Host.SystemWeb
+nuget Newtonsoft.Json
 nuget xunit
 nuget xunit.runner.console
 nuget Moq

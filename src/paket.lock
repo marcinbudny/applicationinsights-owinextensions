@@ -1,4 +1,4 @@
-FRAMEWORK: NET45
+FRAMEWORK: NET45, NET452
 NUGET
   remote: https://www.nuget.org/api/v2
   specs:
@@ -26,6 +26,9 @@ NUGET
       Microsoft.Owin (>= 2.0.2)
       Owin (>= 1.0)
     Microsoft.Owin.Host.HttpListener (3.0.1)
+    Microsoft.Owin.Host.SystemWeb (2.0.2)
+      Microsoft.Owin (>= 2.0.2)
+      Owin (>= 1.0)
     Microsoft.Owin.Hosting (2.0.2)
       Microsoft.Owin (>= 2.0.2)
       Owin (>= 1.0)
@@ -36,7 +39,7 @@ NUGET
       Microsoft.Owin.Hosting (>= 2.0.2)
       Owin (>= 1.0)
     Moq (4.2.1510.2205)
-    Newtonsoft.Json (7.0.1)
+    Newtonsoft.Json (8.0.3)
     Owin (1.0)
     xunit (2.1.0)
       xunit.assert (2.1.0)
