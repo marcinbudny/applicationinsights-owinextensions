@@ -3,11 +3,11 @@ NUGET
   remote: https://www.nuget.org/api/v2
   specs:
     FluentAssertions (4.2.2)
-    Microsoft.ApplicationInsights (1.2.0)
-    Microsoft.ApplicationInsights.Agent.Intercept (1.2.0)
-    Microsoft.ApplicationInsights.DependencyCollector (1.2.1)
-      Microsoft.ApplicationInsights (1.2.0)
-      Microsoft.ApplicationInsights.Agent.Intercept (>= 1.2.0)
+    Microsoft.ApplicationInsights (2.0.0)
+    Microsoft.ApplicationInsights.Agent.Intercept (1.2.1)
+    Microsoft.ApplicationInsights.DependencyCollector (2.0.0)
+      Microsoft.ApplicationInsights (2.0.0)
+      Microsoft.ApplicationInsights.Agent.Intercept (>= 1.2.1)
     Microsoft.AspNet.WebApi.Client (5.2.3)
       Newtonsoft.Json (>= 6.0.4)
     Microsoft.AspNet.WebApi.Core (5.2.3)
