@@ -4,13 +4,13 @@ This library is a set of extensions, that allow you to easily get some features 
 
 ## Features
 
-* Sets the common Conext.Operation.Id property for all telemetries within one request (even asynchronously called dependencies)
+* Sets the common Context.Operation.Id property for all telemetries within one request (even asynchronously called dependencies)
 * Creates Request telemetry with proper name, id and execution time
 * Useable with both self-hosted and System.Web hosted OWIN applications
 
 ## Installation
 
-Install Application Insights within the project like you would normally do. You may also want to update related nuget packages to latets versions.
+Install Application Insights within the project like you would normally do. You may also want to update related nuget packages to latest versions.
 
 Install the extensions package:
 
@@ -68,7 +68,7 @@ and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
 
 ## How this stuff works
 
-First middleware in the pipeline establishes a new Operation Id context (`Guid.NewGuid()` by default). This value is stored both in OWIN environment dictionary under the `ApplicationInsights.OwinExtensions.OperationIdContext` key, and in the [CallContext](https://msdn.microsoft.com/en-US/library/system.runtime.remoting.messaging.callcontext). There is the [OperationIdContext](src/ApplicationInsights.OwinExtensions/OperationIdContext.cs) class that can be used to access the current value of Operation Id from anywhere withing the call context. The telemetry initializer makes use of that and sets appropriate property on the telemetries.
+First middleware in the pipeline establishes a new Operation Id context (`Guid.NewGuid()` by default). This value is stored both in OWIN environment dictionary under the `ApplicationInsights.OwinExtensions.OperationIdContext` key, and in the [CallContext](https://msdn.microsoft.com/en-US/library/system.runtime.remoting.messaging.callcontext). There is the [OperationIdContext](src/ApplicationInsights.OwinExtensions/OperationIdContext.cs) class that can be used to access the current value of Operation Id from anywhere within the call context. The telemetry initializer makes use of that and sets appropriate property on the telemetries.
 
 ## Contributing
 
