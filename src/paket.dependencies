@@ -1,8 +1,7 @@
 framework: auto-detect
 source https://nuget.org/api/v2
+redirects: on
 
-nuget Microsoft.AspNet.WebApi.Owin
-nuget Microsoft.Owin.Host.SystemWeb
 nuget Newtonsoft.Json
 nuget xunit
 nuget xunit.runner.console
@@ -11,5 +10,13 @@ nuget FluentAssertions
 nuget Microsoft.Owin >= 2.0.2
 nuget Microsoft.Owin.SelfHost
 nuget Microsoft.AspNet.WebApi.OwinSelfHost
+nuget Microsoft.AspNet.WebApi.Owin
+nuget Microsoft.Owin.Host.SystemWeb
+nuget Microsoft.Owin.Security.OAuth >= 2.0.2
 nuget Microsoft.ApplicationInsights >= 1.2
 nuget Microsoft.ApplicationInsights.DependencyCollector >= 2
+nuget Microsoft.ApplicationInsights.Agent.Intercept
+nuget Microsoft.ApplicationInsights.PerfCounterCollector
+nuget Microsoft.ApplicationInsights.Web
+nuget Microsoft.ApplicationInsights.WindowsServer
+nuget Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel
