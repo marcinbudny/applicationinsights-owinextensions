@@ -33,57 +33,6 @@ public class Startup
 }
 ```
 
-Each operation will be provided with unique Guid Context.Operation.Id property by default. However, there
-is possibility to pass an operation id between different dependencies via request header.
-
-```csharp
-public class Startup
-{
-	public void Configuration(IAppBuilder app)
-	{
-		app.UseApplicationInsights(			
-		  new OperationIdContexMiddlewareConfiguration {ShouldTryGetIdFromHeader = true});
-		  
-		// rest of the config here...
-	}
-}
-```
-
-Default header name for Context.Operation.Id value is `AI-Operation-Id`, but it can also be customized.
-
-```csharp
-public class Startup
-{
-	public void Configuration(IAppBuilder app)
-	{
-		app.UseApplicationInsights(			
-		  new OperationIdContexMiddlewareConfiguration {
-		  		ShouldTryGetIdFromHeader = true,
-				  OperationIdHeaderName = "Custom-Header-Name"});
-				  
-		// rest of the config here...
-	}
-}
-```
-
-Example how to perform Http request with appended Context.Operation.Id value:
-
-```csharp
-using (var client = new HttpClient())
-{
-	var request = new HttpRequestMessage
-	{
-		Method = HttpMethod.Get,
-		RequestUri = new Uri($"http://{serviceHost}:{servicePort}")
-	};
-
-	request.Headers.Add("AI-Operation-Id", OperationIdContext.Get());
-	await client.SendAsync(request);
-}
-```
-
-The OperationIdContex is a static class storing current request Context.Operation.Id value.
-
 **Note:** If you are using `Microsoft.Owin.Security.*` middlewares, you need to restore the Operation Id context one step after the authentication middleware - otherwise the Operation Id context will be lost (*TODO: figure out why*).
 
 ```csharp
@@ -119,7 +68,67 @@ In most cases you can remove following telemetry initializers that are present b
 
 and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
 
-You can also use `ComponentNameTelemetryInitializer` to add `ComponentName` property to your telemetry.
+## Passing OperationId via header
+
+Let's presume that your system is build of many services communicating by http requests with each other . 
+You probably would like to be able to track how the specific operation propagate through your system's components.
+To achieve this you should append the operation id to each request with a header. Provided middleware can
+acquire that id, use it with its own telemetry and then it can be passed to next component. And so on... 
+
+This behaviour is turned off by default. Following snippets present how to turn it on.
+
+```csharp
+public class Startup
+{
+	public void Configuration(IAppBuilder app)
+	{
+		app.UseApplicationInsights(			
+		  new OperationIdContexMiddlewareConfiguration {ShouldTryGetIdFromHeader = true});
+		  
+		// rest of the config here...
+	}
+}
+```
+
+Default header name for Context.Operation.Id value is `X-Operation-Id`, but it can also be customized.
+
+```csharp
+public class Startup
+{
+	public void Configuration(IAppBuilder app)
+	{
+		app.UseApplicationInsights(			
+		  new OperationIdContexMiddlewareConfiguration {
+		  		ShouldTryGetIdFromHeader = true,
+				  OperationIdHeaderName = "Custom-Header-Name"});
+				  
+		// rest of the config here...
+	}
+}
+```
+
+Example how to perform http request with appended Context.Operation.Id value:
+
+```csharp
+using (var client = new HttpClient())
+{
+	var request = new HttpRequestMessage
+	{
+		Method = HttpMethod.Get,
+		RequestUri = new Uri($"http://{serviceHost}:{servicePort}")
+	};
+
+	request.Headers.Add("AI-Operation-Id", OperationIdContext.Get());
+	await client.SendAsync(request);
+}
+```
+
+The OperationIdContext is a static class storing current request Context.Operation.Id value.
+
+### Optional steps
+
+You can  use `ComponentNameTelemetryInitializer` to add `ComponentName` property to your telemetry.
+It will simplify filtering telemetries connected with specific component of your system.
 
 ```csharp
 TelemetryConfiguration.Active
