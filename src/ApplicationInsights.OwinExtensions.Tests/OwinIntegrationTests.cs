@@ -47,7 +47,11 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
                 DependencyTrackingTelemetryModule = new DependencyTrackingTelemetryModule();
                 DependencyTrackingTelemetryModule.Initialize(config);
-                app.UseApplicationInsights(config);
+
+                app.UseApplicationInsights(
+                    middlewareConfiguration:
+                        new OperationIdContextMiddlewareConfiguration {ShouldTryGetIdFromHeader = true},
+                    telemetryConfiguration: config);
             }
 
             private static void SignalOnRequestCompletion(IAppBuilder app)
@@ -112,6 +116,29 @@ namespace ApplicationInsights.OwinExtensions.Tests
             var telemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is DependencyTelemetry);
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be(Startup.ActualOperationId);
+        }
+
+        [Fact]
+        public async Task Can_Pass_Operation_Id_Key_Via_Request_Header()
+        {
+            using (WebApp.Start<Startup>("http://localhost:7690"))
+            using (var client = new HttpClient())
+            {
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri("http://localhost:7690")
+                };
+
+                request.Headers.Add(Consts.OperationIdHeaderName, "passed_operation_id_key");
+                await client.SendAsync(request);
+            }
+
+            Startup.RequestCompleted.WaitOne(1000);
+
+            var telemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is DependencyTelemetry);
+            Assert.True(telemetry != null, "Dependency telemetry was not sent");
+            telemetry.Context.Operation.Id.Should().Be("passed_operation_id_key");
         }
 
         public void Dispose()

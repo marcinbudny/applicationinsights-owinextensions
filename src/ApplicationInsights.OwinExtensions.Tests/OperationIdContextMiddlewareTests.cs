@@ -12,7 +12,10 @@ namespace ApplicationInsights.OwinExtensions.Tests
         {
             var actual = new OperationIdCollectingMiddleware();
 
-            var sut = new OperationIdContextMiddleware(actual);
+            var sut = new OperationIdContextMiddleware(
+                actual,
+                new OperationIdContextMiddlewareConfiguration());
+
             await sut.Invoke(new MockOwinContext());
 
             actual.OperationIdFromAmbientContext.Should().NotBeNullOrEmpty();
@@ -25,7 +28,10 @@ namespace ApplicationInsights.OwinExtensions.Tests
         {
             var context = new MockOwinContext();
 
-            var sut = new OperationIdContextMiddleware(new NoopMiddleware());
+            var sut = new OperationIdContextMiddleware(
+                new NoopMiddleware(),
+                new OperationIdContextMiddlewareConfiguration());
+
             await sut.Invoke(context);
 
             context.Get<string>(Consts.OperationIdContextKey).Should().BeNull();

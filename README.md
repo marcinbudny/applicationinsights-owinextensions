@@ -5,6 +5,7 @@ This library is a set of extensions, that allow you to easily get some features 
 ## Features
 
 * Sets the common Context.Operation.Id property for all telemetries within one request (even asynchronously called dependencies)
+* Pass Context.Operation.Id property between multiple dependencies request chains
 * Creates Request telemetry with proper name, id and execution time
 * Useable with both self-hosted and System.Web hosted OWIN applications
 
@@ -26,6 +27,7 @@ public class Startup
 	public void Configuration(IAppBuilder app)
 	{
 		app.UseApplicationInsights();
+		
 		// rest of the config here...
 	}
 }
@@ -65,6 +67,73 @@ In most cases you can remove following telemetry initializers that are present b
 * `Microsoft.ApplicationInsights.Web.OperationNameTelemetryInitializer`
 
 and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
+
+## Passing OperationId via header
+
+Let's presume that your system is build of many services communicating by http requests with each other . 
+You probably would like to be able to track how the specific operation propagate through your system's components.
+To achieve this you should append the operation id to each request with a header. Provided middleware can
+acquire that id, use it with its own telemetry and then it can be passed to next component. And so on... 
+
+This behaviour is turned off by default. Following snippets present how to turn it on.
+
+```csharp
+public class Startup
+{
+	public void Configuration(IAppBuilder app)
+	{
+		app.UseApplicationInsights(			
+		  new OperationIdContexMiddlewareConfiguration {ShouldTryGetIdFromHeader = true});
+		  
+		// rest of the config here...
+	}
+}
+```
+
+Default header name for Context.Operation.Id value is `X-Operation-Id`, but it can also be customized.
+
+```csharp
+public class Startup
+{
+	public void Configuration(IAppBuilder app)
+	{
+		app.UseApplicationInsights(			
+		  new OperationIdContexMiddlewareConfiguration {
+		  		ShouldTryGetIdFromHeader = true,
+				  OperationIdHeaderName = "Custom-Header-Name"});
+				  
+		// rest of the config here...
+	}
+}
+```
+
+Example how to perform http request with appended Context.Operation.Id value:
+
+```csharp
+using (var client = new HttpClient())
+{
+	var request = new HttpRequestMessage
+	{
+		Method = HttpMethod.Get,
+		RequestUri = new Uri($"http://{serviceHost}:{servicePort}")
+	};
+
+	request.Headers.Add("X-Operation-Id", OperationIdContext.Get());
+	await client.SendAsync(request);
+}
+```
+
+The OperationIdContext is a static class storing current request Context.Operation.Id value.
+
+### Optional steps
+
+You can  use `ComponentNameTelemetryInitializer` to add `ComponentName` property to your telemetry.
+It will simplify filtering telemetries connected with specific component of your system.
+
+```csharp
+TelemetryConfiguration.Active
+	.TelemetryInitializers.Add(new ComponentNameTelemetryInitializer("MyComponentName"));
+```
 
 ## How this stuff works
 

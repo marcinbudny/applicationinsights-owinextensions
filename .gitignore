@@ -86,6 +86,7 @@ ClientBin
 [Ss]tyle[Cc]op.*
 ~$*
 *.dbmdl
+*.xdt
 
 *.[Pp]ublish.xml
 
