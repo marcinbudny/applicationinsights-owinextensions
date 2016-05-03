@@ -118,7 +118,7 @@ using (var client = new HttpClient())
 		RequestUri = new Uri($"http://{serviceHost}:{servicePort}")
 	};
 
-	request.Headers.Add("AI-Operation-Id", OperationIdContext.Get());
+	request.Headers.Add("X-Operation-Id", OperationIdContext.Get());
 	await client.SendAsync(request);
 }
 ```
