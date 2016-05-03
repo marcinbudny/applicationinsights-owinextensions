@@ -63,7 +63,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
                 DependencyTrackingTelemetryModule = new DependencyTrackingTelemetryModule();
                 DependencyTrackingTelemetryModule.Initialize(telemetryConfig);
-                app.UseApplicationInsights(telemetryConfig);
+                app.UseApplicationInsights(telemetryConfiguration: telemetryConfig);
             }
 
             private static void ConfigureWebApi(IAppBuilder app)

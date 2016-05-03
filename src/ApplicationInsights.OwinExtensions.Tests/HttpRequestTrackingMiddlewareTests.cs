@@ -38,7 +38,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
-                    new NoopMiddleware(), configuration));
+                    new NoopMiddleware(), configuration),
+                new OperationIdContextMiddlewareConfiguration());
 
             // when
             await sut.Invoke(context);

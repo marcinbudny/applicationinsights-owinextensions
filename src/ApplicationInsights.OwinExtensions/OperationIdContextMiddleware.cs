@@ -1,12 +1,24 @@
-﻿using System.Threading.Tasks;
+﻿using System.ComponentModel;
+using System.Threading.Tasks;
 using Microsoft.Owin;
 
 namespace ApplicationInsights.OwinExtensions
 {
+    public class OperationIdContextMiddlewareConfiguration
+    {
+        public bool ShouldTryGetIdFromHeader { get; set; } = false;
+        public string OperationIdHeaderName { get; set; } = Consts.OperationIdHeaderName;
+    }
+
     public class OperationIdContextMiddleware : OwinMiddleware
     {
-        public OperationIdContextMiddleware(OwinMiddleware next) : base(next)
+        private readonly OperationIdContextMiddlewareConfiguration _configuration;
+
+        public OperationIdContextMiddleware(
+            OwinMiddleware next, 
+            OperationIdContextMiddlewareConfiguration configuration) : base(next)
         {
+            _configuration = configuration ?? new OperationIdContextMiddlewareConfiguration();
         }
 
         public override async Task Invoke(IOwinContext context)
@@ -24,11 +36,12 @@ namespace ApplicationInsights.OwinExtensions
             }
         }
 
-        private static void InitializeOperationIdContext(IOwinContext context)
+        private void InitializeOperationIdContext(IOwinContext context)
         {
             string idContextKey;
 
-            if (TryGetOperationIdContextKey(context, out idContextKey))
+            if (_configuration.ShouldTryGetIdFromHeader && 
+                TryGetIdFromHeader(context, out idContextKey))
             {
                 OperationIdContext.Set(idContextKey);
             }
@@ -40,9 +53,9 @@ namespace ApplicationInsights.OwinExtensions
             context.Set(Consts.OperationIdContextKey, OperationIdContext.Get());
         }
 
-        private static bool TryGetOperationIdContextKey(IOwinContext context, out string idContextKey)
+        private bool TryGetIdFromHeader(IOwinContext context, out string idContextKey)
         {
-            idContextKey = context.Request?.Headers?.Get(Consts.OperationIdContextKey);
+            idContextKey = context.Request?.Headers?.Get(_configuration.OperationIdHeaderName);
             return idContextKey != null;
         }
     }

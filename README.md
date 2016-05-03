@@ -5,6 +5,7 @@ This library is a set of extensions, that allow you to easily get some features 
 ## Features
 
 * Sets the common Context.Operation.Id property for all telemetries within one request (even asynchronously called dependencies)
+* Pass Context.Operation.Id property between multiple dependencies request chains
 * Creates Request telemetry with proper name, id and execution time
 * Useable with both self-hosted and System.Web hosted OWIN applications
 
@@ -26,10 +27,62 @@ public class Startup
 	public void Configuration(IAppBuilder app)
 	{
 		app.UseApplicationInsights();
+		
 		// rest of the config here...
 	}
 }
 ```
+
+Each operation will be provided with unique Guid Context.Operation.Id property by default. However, there
+is possibility to pass an operation id between different dependencies via request header.
+
+```csharp
+public class Startup
+{
+	public void Configuration(IAppBuilder app)
+	{
+		app.UseApplicationInsights(			
+		  new OperationIdContexMiddlewareConfiguration {ShouldTryGetIdFromHeader = true});
+		  
+		// rest of the config here...
+	}
+}
+```
+
+Default header name for Context.Operation.Id value is `AI-Operation-Id`, but it can also be customized.
+
+```csharp
+public class Startup
+{
+	public void Configuration(IAppBuilder app)
+	{
+		app.UseApplicationInsights(			
+		  new OperationIdContexMiddlewareConfiguration {
+		  		ShouldTryGetIdFromHeader = true,
+				  OperationIdHeaderName = "Custom-Header-Name"});
+				  
+		// rest of the config here...
+	}
+}
+```
+
+Example how to perform Http request with appended Context.Operation.Id value:
+
+```csharp
+using (var client = new HttpClient())
+{
+	var request = new HttpRequestMessage
+	{
+		Method = HttpMethod.Get,
+		RequestUri = new Uri($"http://{serviceHost}:{servicePort}")
+	};
+
+	request.Headers.Add("AI-Operation-Id", OperationIdContext.Get());
+	await client.SendAsync(request);
+}
+```
+
+The OperationIdContex is a static class storing current request Context.Operation.Id value.
 
 **Note:** If you are using `Microsoft.Owin.Security.*` middlewares, you need to restore the Operation Id context one step after the authentication middleware - otherwise the Operation Id context will be lost (*TODO: figure out why*).
 
@@ -65,6 +118,13 @@ In most cases you can remove following telemetry initializers that are present b
 * `Microsoft.ApplicationInsights.Web.OperationNameTelemetryInitializer`
 
 and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
+
+You can also use `ComponentNameTelemetryInitializer` to add `ComponentName` property to your telemetry.
+
+```csharp
+TelemetryConfiguration.Active
+	.TelemetryInitializers.Add(new ComponentNameTelemetryInitializer("MyComponentName"));
+```
 
 ## How this stuff works
 

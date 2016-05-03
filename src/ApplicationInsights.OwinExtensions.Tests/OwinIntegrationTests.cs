@@ -47,7 +47,11 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
                 DependencyTrackingTelemetryModule = new DependencyTrackingTelemetryModule();
                 DependencyTrackingTelemetryModule.Initialize(config);
-                app.UseApplicationInsights(config);
+
+                app.UseApplicationInsights(
+                    middlewareConfiguration:
+                        new OperationIdContextMiddlewareConfiguration {ShouldTryGetIdFromHeader = true},
+                    telemetryConfiguration: config);
             }
 
             private static void SignalOnRequestCompletion(IAppBuilder app)
@@ -126,7 +130,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                     RequestUri = new Uri("http://localhost:7690")
                 };
 
-                request.Headers.Add(Consts.OperationIdContextKey, "passed_operation_id_key");
+                request.Headers.Add(Consts.OperationIdHeaderName, "passed_operation_id_key");
                 await client.SendAsync(request);
             }
 
