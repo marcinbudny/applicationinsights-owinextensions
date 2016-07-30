@@ -2,6 +2,9 @@ framework: auto-detect
 source https://nuget.org/api/v2
 redirects: on
 
+nuget Antlr 3.4.1.9004
+nuget Microsoft.CodeDom.Providers.DotNetCompilerPlatform 1.0.0
+nuget Microsoft.Web.Infrastructure 1.0.0.0
 nuget Newtonsoft.Json
 nuget xunit
 nuget xunit.runner.console
