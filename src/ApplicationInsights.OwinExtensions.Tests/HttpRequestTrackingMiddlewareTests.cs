@@ -59,6 +59,125 @@ namespace ApplicationInsights.OwinExtensions.Tests
             telemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
         }
 
+        [Fact]
+        public async Task Should_Send_Request_Telemetry_When_Not_Filtered_Out()
+        {
+            // given
+            var channel = new MockTelemetryChannel();
+
+            var request = Mock.Of<IOwinRequest>(r =>
+                r.Method == "GET" &&
+                r.Path == new PathString("/path") &&
+                r.Uri == new Uri("http://google.com/path")
+                );
+
+            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
+
+            var context = new MockOwinContextBuilder()
+                .WithRequest(request)
+                .WithResponse(response)
+                .Build();
+
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithChannel(channel)
+                .Build();
+
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    new NoopMiddleware(), configuration, (req, resp) => true),
+                new OperationIdContextMiddlewareConfiguration());
+
+            // when
+            await sut.Invoke(context);
+
+            // then
+            channel.SentTelemetries.Count.Should().Be(1);
+
+            var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
+            telemetry.Should().NotBeNull();
+        }
+
+        [Fact]
+        public async Task Should_Skip_Request_Telemetry_When_Filtered_Out()
+        {
+            // given
+            var channel = new MockTelemetryChannel();
+
+            var request = Mock.Of<IOwinRequest>(r =>
+                r.Method == "GET" &&
+                r.Path == new PathString("/path") &&
+                r.Uri == new Uri("http://google.com/path")
+                );
+
+            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
+
+            var context = new MockOwinContextBuilder()
+                .WithRequest(request)
+                .WithResponse(response)
+                .Build();
+
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithChannel(channel)
+                .Build();
+
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    new NoopMiddleware(), configuration, (req, resp) => false),
+                new OperationIdContextMiddlewareConfiguration());
+
+            // when
+            await sut.Invoke(context);
+
+            // then
+            channel.SentTelemetries.Count.Should().Be(0);
+        }
+
+        [Fact]
+        public async Task Can_Pass_Request_Details_For_Filtering()
+        {
+            // given
+            var channel = new MockTelemetryChannel();
+
+            var request = Mock.Of<IOwinRequest>(r =>
+                r.Method == "GET" &&
+                r.Path == new PathString("/path") &&
+                r.Uri == new Uri("http://google.com/path")
+                );
+
+            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
+
+            var context = new MockOwinContextBuilder()
+                .WithRequest(request)
+                .WithResponse(response)
+                .Build();
+
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithChannel(channel)
+                .Build();
+            IOwinRequest filteredRequest = null;
+            IOwinResponse filteredResponse = null;
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    new NoopMiddleware(), configuration, (req, resp) =>
+                    {
+                        filteredRequest = req;
+                        filteredResponse = resp;
+                        return false;
+                    }),
+                new OperationIdContextMiddlewareConfiguration());
+
+            // when
+            await sut.Invoke(context);
+
+            // then
+            filteredRequest.ShouldBeEquivalentTo(request);
+            filteredResponse.ShouldBeEquivalentTo(response);
+
+        }
+
         [Theory]
         [InlineData(200, true )]
         [InlineData(201, true )]

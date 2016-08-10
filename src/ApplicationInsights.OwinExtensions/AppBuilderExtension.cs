@@ -1,4 +1,6 @@
-﻿using Microsoft.ApplicationInsights.Extensibility;
+﻿using System;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.Owin;
 using Owin;
 
 namespace ApplicationInsights.OwinExtensions
@@ -7,10 +9,11 @@ namespace ApplicationInsights.OwinExtensions
     {
         public static IAppBuilder UseApplicationInsights(this IAppBuilder builder,
             OperationIdContextMiddlewareConfiguration middlewareConfiguration = null,
-            TelemetryConfiguration telemetryConfiguration = null)
+            TelemetryConfiguration telemetryConfiguration = null,
+            Func<IOwinRequest, IOwinResponse, bool> shouldTraceRequest = null)
         {
             builder.Use<OperationIdContextMiddleware>(middlewareConfiguration);
-            builder.Use<HttpRequestTrackingMiddleware>(telemetryConfiguration);
+            builder.Use<HttpRequestTrackingMiddleware>(telemetryConfiguration, shouldTraceRequest);
 
             return builder;
         }

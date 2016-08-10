@@ -10,10 +10,12 @@ namespace ApplicationInsights.OwinExtensions
 {
     public class HttpRequestTrackingMiddleware : OwinMiddleware
     {
+        private readonly Func<IOwinRequest, IOwinResponse, bool> _shouldTraceRequest;
         private readonly TelemetryClient _client;
 
-        public HttpRequestTrackingMiddleware(OwinMiddleware next, TelemetryConfiguration configuration = null) : base(next)
+        public HttpRequestTrackingMiddleware(OwinMiddleware next, TelemetryConfiguration configuration = null, Func<IOwinRequest, IOwinResponse, bool> shouldTraceRequest = null) : base(next)
         {
+            _shouldTraceRequest = shouldTraceRequest;
             _client = configuration != null ? new TelemetryClient(configuration) : new TelemetryClient();
         }
 
@@ -34,9 +36,16 @@ namespace ApplicationInsights.OwinExtensions
             finally
             {
                 stopWatch.Stop();
-
-                TraceRequest(method, path, uri, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
+                if (ShouldTraceRequest(context))
+                    TraceRequest(method, path, uri, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
             }
+        }
+
+        private bool ShouldTraceRequest(IOwinContext context)
+        {
+            if (_shouldTraceRequest == null)
+                return true;
+            return _shouldTraceRequest(context.Request, context.Response);
         }
 
         private void TraceRequest(string method, string path, Uri uri, int responseCode, DateTimeOffset requestStartDate, TimeSpan duration)
