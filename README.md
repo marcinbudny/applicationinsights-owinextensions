@@ -142,3 +142,8 @@ First middleware in the pipeline establishes a new Operation Id context (`Guid.N
 ## Contributing
 
 If you would like to contribute, please create a PR against the develop branch.
+
+## Release notes
+
+### 0.3.0
+* [FEATURE] It is now possible to filter logged request telemetries by providing a delegate in `UseApplicationInsights`
