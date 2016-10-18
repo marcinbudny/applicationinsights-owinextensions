@@ -33,7 +33,7 @@ public class Startup
 }
 ```
 
-**Note:** If you are using `Microsoft.Owin.Security.*` middlewares, you need to restore the Operation Id context one step after the authentication middleware - otherwise the Operation Id context will be lost (*TODO: figure out why*).
+**Note:** If you are using `Microsoft.Owin.Security.*` middlewares, you need to restore the Operation Id context one step after the authentication middleware - otherwise the Operation Id context will be lost. This problem is most probably related to the security middleware taking advantage of the old System.Web pipeline integration and setting the stage markers. The problem will probably surface also with other middlewares using the stage markers.
 
 ```csharp
 // ...
