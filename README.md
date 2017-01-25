@@ -68,7 +68,29 @@ In most cases you can remove following telemetry initializers that are present b
 
 and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
 
-## Passing OperationId via header
+## Advanced usage
+
+### Selectively tracing requests
+
+You can pass a parameter to the `UseApplicationInsights` method specifying request filtering callback.
+
+```csharp
+appBuilder.UseApplicationInsights(shouldTraceRequest: 
+	(req, res) => req.Method != "OPTIONS");
+```
+
+### Adding custom properties to telemetry
+
+You can also extend the traced telemetry with custom properties. Note: if your custom properties are not related
+to the request or the response, you can alternatively specify additional `TelemetryInitializer` in your 
+Application Insights telemetry configuration.
+
+```csharp
+appBuilder.UseApplicationInsights(getContextProperties: 
+	(req, res) => new[] { new KeyValuePair<string, string>("Content-type", req.ContentType) });
+```
+
+### Passing OperationId via header
 
 Let's presume that your system is build of many services communicating by http requests with each other . 
 You probably would like to be able to track how the specific operation propagate through your system's components.
@@ -125,7 +147,7 @@ using (var client = new HttpClient())
 
 The OperationIdContext is a static class storing current request Context.Operation.Id value.
 
-### Optional steps
+#### Optional steps
 
 You can  use `ComponentNameTelemetryInitializer` to add `ComponentName` property to your telemetry.
 It will simplify filtering telemetries connected with specific component of your system.
@@ -144,6 +166,9 @@ First middleware in the pipeline establishes a new Operation Id context (`Guid.N
 If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
+
+### 0.4.0 
+* [FEATURE] It is now possible to add custom properties to the logged request telemetry by providing a delegate in `UseApplicationInsights`
 
 ### 0.3.0
 * [FEATURE] It is now possible to filter logged request telemetries by providing a delegate in `UseApplicationInsights`
