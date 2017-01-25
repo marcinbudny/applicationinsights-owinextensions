@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
@@ -11,11 +12,17 @@ namespace ApplicationInsights.OwinExtensions
     public class HttpRequestTrackingMiddleware : OwinMiddleware
     {
         private readonly Func<IOwinRequest, IOwinResponse, bool> _shouldTraceRequest;
+        private readonly Func<IOwinRequest, IOwinResponse, KeyValuePair<string, string>[]> _getContextProperties;
         private readonly TelemetryClient _client;
 
-        public HttpRequestTrackingMiddleware(OwinMiddleware next, TelemetryConfiguration configuration = null, Func<IOwinRequest, IOwinResponse, bool> shouldTraceRequest = null) : base(next)
+        public HttpRequestTrackingMiddleware(
+            OwinMiddleware next, 
+            TelemetryConfiguration configuration = null, 
+            Func<IOwinRequest, IOwinResponse, bool> shouldTraceRequest = null, 
+            Func<IOwinRequest, IOwinResponse, KeyValuePair<string,string>[]> getContextProperties = null) : base(next)
         {
             _shouldTraceRequest = shouldTraceRequest;
+            _getContextProperties = getContextProperties;
             _client = configuration != null ? new TelemetryClient(configuration) : new TelemetryClient();
         }
 
@@ -37,8 +44,21 @@ namespace ApplicationInsights.OwinExtensions
             {
                 stopWatch.Stop();
                 if (ShouldTraceRequest(context))
-                    TraceRequest(method, path, uri, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
+                {
+                    var contextProperties = GetContextProperties(context);
+                    TraceRequest(method, path, uri, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed, contextProperties);
+                }
+                    
             }
+        }
+
+        private KeyValuePair<string,string>[] GetContextProperties(IOwinContext context)
+        {
+            if (_getContextProperties == null)
+            {
+                return new KeyValuePair<string, string>[0];
+            }
+            return _getContextProperties(context.Request, context.Response);
         }
 
         private bool ShouldTraceRequest(IOwinContext context)
@@ -48,7 +68,7 @@ namespace ApplicationInsights.OwinExtensions
             return _shouldTraceRequest(context.Request, context.Response);
         }
 
-        private void TraceRequest(string method, string path, Uri uri, int responseCode, DateTimeOffset requestStartDate, TimeSpan duration)
+        private void TraceRequest(string method, string path, Uri uri, int responseCode, DateTimeOffset requestStartDate, TimeSpan duration, KeyValuePair<string, string>[] contextProperties)
         {
             var name = $"{method} {path}";
 
@@ -63,9 +83,11 @@ namespace ApplicationInsights.OwinExtensions
                 HttpMethod = method,
                 Url = uri
             };
-
             telemetry.Context.Operation.Name = name;
-
+            foreach (var kvp in contextProperties)
+            {
+                telemetry.Context.Properties.Add(kvp);
+            }
             _client.TrackRequest(telemetry);
         }
     }

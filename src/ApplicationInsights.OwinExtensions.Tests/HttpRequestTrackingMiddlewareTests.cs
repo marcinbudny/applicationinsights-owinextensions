@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ApplicationInsights.OwinExtensions.Tests.Utils;
@@ -176,6 +177,62 @@ namespace ApplicationInsights.OwinExtensions.Tests
             filteredRequest.ShouldBeEquivalentTo(request);
             filteredResponse.ShouldBeEquivalentTo(response);
 
+        }
+
+        [Fact]
+        public async Task Should_Add_Properties_To_Request_Telemetry_Context_When_They_Are_Provided()
+        {
+            // given
+            var channel = new MockTelemetryChannel();
+
+            var request = Mock.Of<IOwinRequest>(r =>
+                r.Method == "GET" &&
+                r.Path == new PathString("/path") &&
+                r.Uri == new Uri("http://google.com/path")
+                );
+
+            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
+
+            var context = new MockOwinContextBuilder()
+                .WithRequest(request)
+                .WithResponse(response)
+                .Build();
+
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithChannel(channel)
+                .Build();
+
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    new NoopMiddleware(), configuration, getContextProperties: (req, res) => new[]
+                    {
+                        new KeyValuePair<string, string>("key1", "val1"),
+                        new KeyValuePair<string, string>("key2", "val2"),
+                    }),
+                new OperationIdContextMiddlewareConfiguration());
+
+            // when
+            await sut.Invoke(context);
+
+            // then
+            channel.SentTelemetries.Count.Should().Be(1);
+
+            var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
+            telemetry.Should().NotBeNull();
+
+            telemetry.HttpMethod.Should().Be("GET");
+            telemetry.Name.Should().Be("GET /path");
+            telemetry.Context.Operation.Name.Should().Be("GET /path");
+            telemetry.Id.Should().NotBeNullOrEmpty();
+            telemetry.Success.Should().BeTrue();
+            telemetry.Url.Should().Be(new Uri("http://google.com/path"));
+            telemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
+            telemetry.Context.Properties.Should().Contain(new[]
+            {
+                new KeyValuePair<string, string>("key1", "val1"),
+                new KeyValuePair<string, string>("key2", "val2"),
+            });
         }
 
         [Theory]
