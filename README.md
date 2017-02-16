@@ -120,7 +120,7 @@ public class Startup
 	public void Configuration(IAppBuilder app)
 	{
 		app.UseApplicationInsights(			
-		  new OperationIdContexMiddlewareConfiguration {
+		  new OperationIdContextMiddlewareConfiguration {
 		  		ShouldTryGetIdFromHeader = true,
 				  OperationIdHeaderName = "Custom-Header-Name"});
 				  
