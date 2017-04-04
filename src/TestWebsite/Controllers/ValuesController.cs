@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -22,6 +23,12 @@ namespace TestWebsite.Controllers
 
             return new[] { "value1", "value2" };
         }
+
+        [Route("exception")]
+        public Task GetException()
+        {
+            throw new Exception("olaboga!");
+        } 
 
     }
 }

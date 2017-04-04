@@ -167,6 +167,9 @@ If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
 
+### 0.4.1
+* [FIX] Fixed #17 - incorrect logging when exception thrown from downstream OWIN pipeline
+
 ### 0.4.0 
 * [FEATURE] It is now possible to add custom properties to the logged request telemetry by providing a delegate in `UseApplicationInsights`
 

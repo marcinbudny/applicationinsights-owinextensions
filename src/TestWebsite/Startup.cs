@@ -19,7 +19,23 @@ namespace TestWebsite
 
             appBuilder.RestoreOperationIdContext();
 
+            ConfigureOwinMiddlewares(appBuilder);
+
             ConfigureWebApi(appBuilder);
+        }
+
+        private void ConfigureOwinMiddlewares(IAppBuilder appBuilder)
+        {
+            appBuilder.Map("/owin/exception", app => app.Run(
+                context => { throw new Exception("olaboga!"); }));
+
+            appBuilder.Map("/owin", app => app.Run(
+                async context =>
+                {
+                    context.Response.StatusCode = 200;
+                    await context.Response.WriteAsync("hello from OWIN handler");
+                }));
+
         }
 
         private static void ConfigureAuth(IAppBuilder appBuilder)

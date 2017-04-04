@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -28,6 +29,8 @@ namespace ApplicationInsights.OwinExtensions
 
         public override async Task Invoke(IOwinContext context)
         {
+            // following request properties have to be accessed before other middlewares run
+            // otherwise access could result in ObjectDisposedException
             var method = context.Request.Method;
             var path = context.Request.Path.ToString();
             var uri = context.Request.Uri;
@@ -39,16 +42,23 @@ namespace ApplicationInsights.OwinExtensions
             try
             {
                 await Next.Invoke(context);
+
+                stopWatch.Stop();
+
+                if (ShouldTraceRequest(context))
+                    TraceRequest(method, path, uri, context, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
+
             }
-            finally
+            catch (Exception e)
             {
                 stopWatch.Stop();
+
+                TraceException(e);
+
                 if (ShouldTraceRequest(context))
-                {
-                    var contextProperties = GetContextProperties(context);
-                    TraceRequest(method, path, uri, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed, contextProperties);
-                }
-                    
+                    TraceRequest(method, path, uri, context, (int)HttpStatusCode.InternalServerError, requestStartDate, stopWatch.Elapsed);
+
+                throw;
             }
         }
 
@@ -68,7 +78,14 @@ namespace ApplicationInsights.OwinExtensions
             return _shouldTraceRequest(context.Request, context.Response);
         }
 
-        private void TraceRequest(string method, string path, Uri uri, int responseCode, DateTimeOffset requestStartDate, TimeSpan duration, KeyValuePair<string, string>[] contextProperties)
+        private void TraceRequest(
+            string method,
+            string path,
+            Uri uri,
+            IOwinContext context, 
+            int responseCode, 
+            DateTimeOffset requestStartDate, 
+            TimeSpan duration)
         {
             var name = $"{method} {path}";
 
@@ -83,12 +100,21 @@ namespace ApplicationInsights.OwinExtensions
                 HttpMethod = method,
                 Url = uri
             };
+
             telemetry.Context.Operation.Name = name;
-            foreach (var kvp in contextProperties)
-            {
+
+            foreach (var kvp in GetContextProperties(context))
                 telemetry.Context.Properties.Add(kvp);
-            }
+
             _client.TrackRequest(telemetry);
+        }
+
+        private void TraceException(Exception e)
+        {
+            var telemetry = new ExceptionTelemetry(e);
+            telemetry.Context.Operation.Id = OperationIdContext.Get();
+
+            _client.TrackException(telemetry);
         }
     }
 

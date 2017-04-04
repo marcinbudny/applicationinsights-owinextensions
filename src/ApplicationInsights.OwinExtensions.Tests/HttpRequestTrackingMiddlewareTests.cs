@@ -52,6 +52,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             telemetry.Should().NotBeNull();
 
             telemetry.HttpMethod.Should().Be("GET");
+            telemetry.ResponseCode.Should().Be("200");
             telemetry.Name.Should().Be("GET /path");
             telemetry.Context.Operation.Name.Should().Be("GET /path");
             telemetry.Id.Should().NotBeNullOrEmpty();
@@ -233,6 +234,83 @@ namespace ApplicationInsights.OwinExtensions.Tests
                 new KeyValuePair<string, string>("key1", "val1"),
                 new KeyValuePair<string, string>("key2", "val2"),
             });
+        }
+
+        [Fact]
+        public async Task On_Exception_Should_Pass_It_Further()
+        {
+            // given
+            var channel = new MockTelemetryChannel();
+
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithChannel(channel)
+                .Build();
+
+            var context = new MockOwinContextBuilder().Build();
+
+            var sut = new HttpRequestTrackingMiddleware(new ThrowingMiddleware(), configuration);
+
+            // when / then
+            Func<Task> sutAction = async () => await sut.Invoke(context);
+
+            sutAction.ShouldThrow<OlabogaException>();
+        }
+
+        [Fact]
+        public async Task On_Exception_Should_Log_500_Request_And_Exception_Telemetry()
+        {
+            // given
+            var channel = new MockTelemetryChannel();
+
+            var request = Mock.Of<IOwinRequest>(r =>
+                r.Method == "GET" &&
+                r.Path == new PathString("/path") &&
+                r.Uri == new Uri("http://google.com/path")
+            );
+
+            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
+
+            var context = new MockOwinContextBuilder()
+                .WithRequest(request)
+                .WithResponse(response)
+                .Build();
+
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithChannel(channel)
+                .Build();
+
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    new ThrowingMiddleware(), configuration),
+                new OperationIdContextMiddlewareConfiguration());
+
+            // when
+            try 
+            {
+                await sut.Invoke(context);
+            }
+            catch(OlabogaException)
+            {
+                // ignored
+            }
+
+            // then
+            channel.SentTelemetries.Count.Should().Be(2);
+
+            var requestTelemetry = channel.SentTelemetries.First(t => t is RequestTelemetry) as RequestTelemetry;
+            requestTelemetry.Success.Should().BeFalse();
+            requestTelemetry.ResponseCode.Should().Be("500");
+            requestTelemetry.HttpMethod.Should().Be("GET");
+            requestTelemetry.Name.Should().Be("GET /path");
+            requestTelemetry.Context.Operation.Name.Should().Be("GET /path");
+            requestTelemetry.Id.Should().NotBeNullOrEmpty();
+            requestTelemetry.Url.Should().Be(new Uri("http://google.com/path"));
+            requestTelemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
+
+            var exceptionTelemetry = channel.SentTelemetries.First(t => t is ExceptionTelemetry) as ExceptionTelemetry;
+            exceptionTelemetry.Context.Operation.Id.Should().NotBeNullOrEmpty();
+            exceptionTelemetry.Exception.Should().BeOfType<OlabogaException>();
         }
 
         [Theory]

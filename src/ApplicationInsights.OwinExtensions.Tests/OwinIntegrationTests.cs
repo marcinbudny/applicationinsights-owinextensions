@@ -69,11 +69,19 @@ namespace ApplicationInsights.OwinExtensions.Tests
                 {
                     ActualOperationId = OperationIdContext.Get();
 
-                    using (var client = new HttpClient())
-                        await client.GetAsync("http://google.com");
+                    if (context.Request.Path.Value.EndsWith("exception"))
+                    {
+                        throw new OlabogaException();
+                    }
+                    else
+                    {
+                        using (var client = new HttpClient())
+                            await client.GetAsync("http://google.com");
 
-                    context.Response.StatusCode = 200;
-                    context.Response.Write("ok");
+
+                        context.Response.StatusCode = 200;
+                        context.Response.Write("ok");
+                    }
                 });
             }
         }
@@ -139,6 +147,23 @@ namespace ApplicationInsights.OwinExtensions.Tests
             var telemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is DependencyTelemetry);
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be("passed_operation_id_key");
+        }
+
+        [Fact]
+        public async Task Can_Send_500_Request_Telemetry_And_Exception_Telemetry_On_Exception()
+        {
+            using (WebApp.Start<Startup>("http://localhost:7690"))
+            using (var client = new HttpClient())
+                await client.GetAsync("http://localhost:7690/exception");
+
+            Startup.RequestCompleted.WaitOne(1000);
+
+            var requestTelemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is RequestTelemetry);
+            Assert.True(requestTelemetry != null, "Request telemetry was not sent");
+
+            var exceptionTelemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is ExceptionTelemetry);
+            Assert.True(exceptionTelemetry != null, "Exception telemetry was not sent");
+
         }
 
         public void Dispose()
