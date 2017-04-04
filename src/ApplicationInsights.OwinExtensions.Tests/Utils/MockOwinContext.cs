@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Microsoft.Owin;
 using Microsoft.Owin.Security;
@@ -36,15 +37,26 @@ namespace ApplicationInsights.OwinExtensions.Tests.Utils
         public MockOwinContextBuilder()
         {
             _context = new MockOwinContext();
-            _context.Request = Mock.Of<IOwinRequest>();
-            _context.Response = Mock.Of<IOwinResponse>();
+            WithDefaultRequest();
+            WithDefaultResponse();
         }
+
+        public MockOwinContextBuilder WithDefaultRequest() 
+            => WithRequest(
+                Mock.Of<IOwinRequest>(r =>
+                    r.Method == "GET" &&
+                    r.Path == new PathString("/path") &&
+                    r.Uri == new Uri("http://google.com/path")
+                ));
 
         public MockOwinContextBuilder WithRequest(IOwinRequest request)
         {
             _context.Request = request;
             return this;
         }
+
+        public MockOwinContextBuilder WithDefaultResponse() 
+            => WithResponse(Mock.Of<IOwinResponse>(r => r.StatusCode == 200));
 
         public MockOwinContextBuilder WithResponse(IOwinResponse response)
         {

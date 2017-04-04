@@ -13,28 +13,23 @@ namespace ApplicationInsights.OwinExtensions.Tests
 {
     public class HttpRequestTrackingMiddlewareTests
     {
+        private static void VerifyDefaultsOnRequestTelemetry(RequestTelemetry telemetry)
+        {
+            telemetry.HttpMethod.Should().Be("GET");
+            telemetry.Name.Should().Be("GET /path");
+            telemetry.Context.Operation.Name.Should().Be("GET /path");
+            telemetry.Id.Should().NotBeNullOrEmpty();
+            telemetry.Url.Should().Be(new Uri("http://google.com/path"));
+            telemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
+        }
+
         [Fact]
         public async Task Can_Send_Request_Telemetry()
         {
             // given
-            var channel = new MockTelemetryChannel();
+            var context = new MockOwinContextBuilder().Build();
 
-            var request = Mock.Of<IOwinRequest>(r =>
-                r.Method == "GET" &&
-                r.Path == new PathString("/path") &&
-                r.Uri == new Uri("http://google.com/path")
-                );
-
-            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
-
-            var context = new MockOwinContextBuilder()
-                .WithRequest(request)
-                .WithResponse(response)
-                .Build();
-
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
 
 
             var sut = new OperationIdContextMiddleware(
@@ -46,43 +41,25 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
             channel.SentTelemetries.Count.Should().Be(1);
 
             var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
             telemetry.Should().NotBeNull();
 
-            telemetry.HttpMethod.Should().Be("GET");
+            VerifyDefaultsOnRequestTelemetry(telemetry);
             telemetry.ResponseCode.Should().Be("200");
-            telemetry.Name.Should().Be("GET /path");
-            telemetry.Context.Operation.Name.Should().Be("GET /path");
-            telemetry.Id.Should().NotBeNullOrEmpty();
             telemetry.Success.Should().BeTrue();
-            telemetry.Url.Should().Be(new Uri("http://google.com/path"));
-            telemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
+
         }
 
         [Fact]
         public async Task Should_Send_Request_Telemetry_When_Not_Filtered_Out()
         {
             // given
-            var channel = new MockTelemetryChannel();
+            var context = new MockOwinContextBuilder().Build();
 
-            var request = Mock.Of<IOwinRequest>(r =>
-                r.Method == "GET" &&
-                r.Path == new PathString("/path") &&
-                r.Uri == new Uri("http://google.com/path")
-                );
-
-            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
-
-            var context = new MockOwinContextBuilder()
-                .WithRequest(request)
-                .WithResponse(response)
-                .Build();
-
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
 
 
             var sut = new OperationIdContextMiddleware(
@@ -94,6 +71,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
             channel.SentTelemetries.Count.Should().Be(1);
 
             var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
@@ -104,24 +82,9 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task Should_Skip_Request_Telemetry_When_Filtered_Out()
         {
             // given
-            var channel = new MockTelemetryChannel();
+            var context = new MockOwinContextBuilder().Build();
 
-            var request = Mock.Of<IOwinRequest>(r =>
-                r.Method == "GET" &&
-                r.Path == new PathString("/path") &&
-                r.Uri == new Uri("http://google.com/path")
-                );
-
-            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
-
-            var context = new MockOwinContextBuilder()
-                .WithRequest(request)
-                .WithResponse(response)
-                .Build();
-
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
 
 
             var sut = new OperationIdContextMiddleware(
@@ -133,6 +96,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
             channel.SentTelemetries.Count.Should().Be(0);
         }
 
@@ -140,24 +104,9 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task Can_Pass_Request_Details_For_Filtering()
         {
             // given
-            var channel = new MockTelemetryChannel();
+            var context = new MockOwinContextBuilder().Build();
 
-            var request = Mock.Of<IOwinRequest>(r =>
-                r.Method == "GET" &&
-                r.Path == new PathString("/path") &&
-                r.Uri == new Uri("http://google.com/path")
-                );
-
-            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
-
-            var context = new MockOwinContextBuilder()
-                .WithRequest(request)
-                .WithResponse(response)
-                .Build();
-
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
             IOwinRequest filteredRequest = null;
             IOwinResponse filteredResponse = null;
 
@@ -175,8 +124,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
-            filteredRequest.ShouldBeEquivalentTo(request);
-            filteredResponse.ShouldBeEquivalentTo(response);
+            filteredRequest.ShouldBeEquivalentTo(context.Request);
+            filteredResponse.ShouldBeEquivalentTo(context.Response);
 
         }
 
@@ -184,24 +133,9 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task Should_Add_Properties_To_Request_Telemetry_Context_When_They_Are_Provided()
         {
             // given
-            var channel = new MockTelemetryChannel();
+            var context = new MockOwinContextBuilder().Build();
 
-            var request = Mock.Of<IOwinRequest>(r =>
-                r.Method == "GET" &&
-                r.Path == new PathString("/path") &&
-                r.Uri == new Uri("http://google.com/path")
-                );
-
-            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
-
-            var context = new MockOwinContextBuilder()
-                .WithRequest(request)
-                .WithResponse(response)
-                .Build();
-
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
 
 
             var sut = new OperationIdContextMiddleware(
@@ -217,34 +151,29 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
             channel.SentTelemetries.Count.Should().Be(1);
 
             var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
             telemetry.Should().NotBeNull();
 
-            telemetry.HttpMethod.Should().Be("GET");
-            telemetry.Name.Should().Be("GET /path");
-            telemetry.Context.Operation.Name.Should().Be("GET /path");
-            telemetry.Id.Should().NotBeNullOrEmpty();
-            telemetry.Success.Should().BeTrue();
-            telemetry.Url.Should().Be(new Uri("http://google.com/path"));
-            telemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
             telemetry.Context.Properties.Should().Contain(new[]
             {
                 new KeyValuePair<string, string>("key1", "val1"),
                 new KeyValuePair<string, string>("key2", "val2"),
             });
+
+            VerifyDefaultsOnRequestTelemetry(telemetry);
+            telemetry.ResponseCode.Should().Be("200");
+            telemetry.Success.Should().BeTrue();
+
         }
 
         [Fact]
         public async Task On_Exception_Should_Pass_It_Further()
         {
             // given
-            var channel = new MockTelemetryChannel();
-
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
 
             var context = new MockOwinContextBuilder().Build();
 
@@ -260,24 +189,9 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task On_Exception_Should_Log_500_Request_And_Exception_Telemetry()
         {
             // given
-            var channel = new MockTelemetryChannel();
+            var context = new MockOwinContextBuilder().Build();
 
-            var request = Mock.Of<IOwinRequest>(r =>
-                r.Method == "GET" &&
-                r.Path == new PathString("/path") &&
-                r.Uri == new Uri("http://google.com/path")
-            );
-
-            var response = Mock.Of<IOwinResponse>(r => r.StatusCode == 200);
-
-            var context = new MockOwinContextBuilder()
-                .WithRequest(request)
-                .WithResponse(response)
-                .Build();
-
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
 
 
             var sut = new OperationIdContextMiddleware(
@@ -296,17 +210,14 @@ namespace ApplicationInsights.OwinExtensions.Tests
             }
 
             // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
             channel.SentTelemetries.Count.Should().Be(2);
 
             var requestTelemetry = channel.SentTelemetries.First(t => t is RequestTelemetry) as RequestTelemetry;
             requestTelemetry.Success.Should().BeFalse();
             requestTelemetry.ResponseCode.Should().Be("500");
-            requestTelemetry.HttpMethod.Should().Be("GET");
-            requestTelemetry.Name.Should().Be("GET /path");
-            requestTelemetry.Context.Operation.Name.Should().Be("GET /path");
-            requestTelemetry.Id.Should().NotBeNullOrEmpty();
-            requestTelemetry.Url.Should().Be(new Uri("http://google.com/path"));
-            requestTelemetry.StartTime.Date.Should().Be(DateTimeOffset.Now.Date);
+
+            VerifyDefaultsOnRequestTelemetry(requestTelemetry);
 
             var exceptionTelemetry = channel.SentTelemetries.First(t => t is ExceptionTelemetry) as ExceptionTelemetry;
             exceptionTelemetry.Context.Operation.Id.Should().NotBeNullOrEmpty();
@@ -333,17 +244,13 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task Can_Send_Request_Telemetry(int statusCode, bool expectedSuccess)
         {
             // given
-            var channel = new MockTelemetryChannel();
-
             var response = Mock.Of<IOwinResponse>(r => r.StatusCode == statusCode);
 
             var context = new MockOwinContextBuilder()
                 .WithResponse(response)
                 .Build();
 
-            var configuration = new TelemetryConfigurationBuilder()
-                .WithChannel(channel)
-                .Build();
+            var configuration = new TelemetryConfigurationBuilder().Build();
 
             var sut = new HttpRequestTrackingMiddleware(new NoopMiddleware(), configuration);
 
@@ -351,6 +258,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
             var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
             telemetry.Success.Should().Be(expectedSuccess);
         }
