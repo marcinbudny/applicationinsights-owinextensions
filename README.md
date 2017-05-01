@@ -11,6 +11,8 @@ This library is a set of extensions, that allow you to easily get some features 
 
 ## Installation
 
+### Required steps
+
 Install Application Insights within the project like you would normally do. You may also want to update related nuget packages to latest versions.
 
 Install the extensions package:
@@ -33,16 +35,13 @@ public class Startup
 }
 ```
 
-**Note:** If you are using `Microsoft.Owin.Security.*` middlewares, you need to restore the Operation Id context one step after the authentication middleware - otherwise the Operation Id context will be lost. This problem is most probably related to the security middleware taking advantage of the old System.Web pipeline integration and setting the stage markers. The problem will probably surface also with other middlewares using the stage markers.
+Cleanup the `ApplicationInsights.config` by removing telemetry initializers and modules with overlapping functionality.
 
-```csharp
-// ...
-app.UseOAuthBearerTokens(OAuthOptions);
-// ...
+* `Microsoft.ApplicationInsights.Web.OperationCorrelationTelemetryInitializer`
+* `Microsoft.ApplicationInsights.Web.OperationIdTelemetryInitializer`
+* `Microsoft.ApplicationInsights.Web.OperationNameTelemetryInitializer`
 
-// now restore the Operation Id context from the OWIN environment dictionary
-app.RestoreOperationIdContext();
-```
+and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
 
 One last thing to do is to configure the Operation Id telemetry initializer. With XML in `ApplicationInsights.config`:
 
@@ -60,13 +59,18 @@ TelemetryConfiguration.Active
 	.TelemetryInitializers.Add(new OperationIdTelemetryInitializer());
 ```
 
-### Optional steps
+### Possibly required steps
 
-In most cases you can remove following telemetry initializers that are present by default:
-* `Microsoft.ApplicationInsights.Web.OperationIdTelemetryInitializer`
-* `Microsoft.ApplicationInsights.Web.OperationNameTelemetryInitializer`
+**Note:** If you are using `Microsoft.Owin.Security.*` middlewares, you need to restore the Operation Id context one step after the authentication middleware - otherwise the Operation Id context will be lost. This problem is most probably related to the security middleware taking advantage of the old System.Web pipeline integration and setting the stage markers. The problem will probably surface also with other middlewares using the stage markers.
 
-and also the `Microsoft.ApplicationInsights.Web.RequestTrackingTelemetryModule`
+```csharp
+// ...
+app.UseOAuthBearerTokens(OAuthOptions);
+// ...
+
+// now restore the Operation Id context from the OWIN environment dictionary
+app.RestoreOperationIdContext();
+```
 
 ## Advanced usage
 
