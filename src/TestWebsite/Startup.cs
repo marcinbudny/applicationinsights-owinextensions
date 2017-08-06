@@ -24,7 +24,7 @@ namespace TestWebsite
             ConfigureWebApi(appBuilder);
         }
 
-        private void ConfigureOwinMiddlewares(IAppBuilder appBuilder)
+        private static void ConfigureOwinMiddlewares(IAppBuilder appBuilder)
         {
             appBuilder.Map("/owin/exception", app => app.Run(
                 context => { throw new Exception("olaboga!"); }));

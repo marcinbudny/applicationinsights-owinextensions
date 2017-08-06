@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
@@ -12,19 +13,42 @@ namespace ApplicationInsights.OwinExtensions
 {
     public class HttpRequestTrackingMiddleware : OwinMiddleware
     {
-        private readonly Func<IOwinRequest, IOwinResponse, bool> _shouldTraceRequest;
-        private readonly Func<IOwinRequest, IOwinResponse, KeyValuePair<string, string>[]> _getContextProperties;
         private readonly TelemetryClient _client;
+        private readonly RequestTrackingConfiguration _configuration;
 
+        [Obsolete("Use the overload accepting RequestTrackingConfiguration")]
         public HttpRequestTrackingMiddleware(
             OwinMiddleware next, 
             TelemetryConfiguration configuration = null, 
             Func<IOwinRequest, IOwinResponse, bool> shouldTraceRequest = null, 
-            Func<IOwinRequest, IOwinResponse, KeyValuePair<string,string>[]> getContextProperties = null) : base(next)
+            Func<IOwinRequest, IOwinResponse, KeyValuePair<string,string>[]> getContextProperties = null) : 
+            this(next, new RequestTrackingConfiguration
+            {
+                TelemetryConfiguration = configuration,
+                ShouldTrackRequest = shouldTraceRequest != null 
+                    ? (IOwinContext cts) => Task.FromResult(shouldTraceRequest(cts.Request, cts.Response))
+                    : (Func<IOwinContext, Task<bool>>) null,
+                GetAdditionalContextProperties = getContextProperties != null 
+                    ? (IOwinContext ctx) => Task.FromResult(getContextProperties(ctx.Request, ctx.Response).AsEnumerable())
+                    : (Func<IOwinContext, Task<IEnumerable<KeyValuePair<string, string>>>>) null,
+            })
         {
-            _shouldTraceRequest = shouldTraceRequest;
-            _getContextProperties = getContextProperties;
-            _client = configuration != null ? new TelemetryClient(configuration) : new TelemetryClient();
+        }
+
+        public HttpRequestTrackingMiddleware(
+            OwinMiddleware next,
+            RequestTrackingConfiguration configuration = null) : base(next)
+        {
+            _configuration = configuration ?? new RequestTrackingConfiguration();
+
+            _configuration.ShouldTrackRequest = _configuration.ShouldTrackRequest ?? (ctx => Task.FromResult(true));
+
+            _configuration.GetAdditionalContextProperties = _configuration.GetAdditionalContextProperties ?? 
+                (ctx => Task.FromResult(Enumerable.Empty<KeyValuePair<string, string>>()));
+
+            _client = _configuration.TelemetryConfiguration != null 
+                ? new TelemetryClient(_configuration.TelemetryConfiguration) 
+                : new TelemetryClient();
         }
 
         public override async Task Invoke(IOwinContext context)
@@ -45,8 +69,8 @@ namespace ApplicationInsights.OwinExtensions
 
                 stopWatch.Stop();
 
-                if (ShouldTraceRequest(context))
-                    TraceRequest(method, path, uri, context, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
+                if (await _configuration.ShouldTrackRequest(context))
+                    await TrackRequest(method, path, uri, context, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
 
             }
             catch (Exception e)
@@ -55,30 +79,14 @@ namespace ApplicationInsights.OwinExtensions
 
                 TraceException(e);
 
-                if (ShouldTraceRequest(context))
-                    TraceRequest(method, path, uri, context, (int)HttpStatusCode.InternalServerError, requestStartDate, stopWatch.Elapsed);
+                if (await _configuration.ShouldTrackRequest(context))
+                    await TrackRequest(method, path, uri, context, (int)HttpStatusCode.InternalServerError, requestStartDate, stopWatch.Elapsed);
 
                 throw;
             }
         }
 
-        private KeyValuePair<string,string>[] GetContextProperties(IOwinContext context)
-        {
-            if (_getContextProperties == null)
-            {
-                return new KeyValuePair<string, string>[0];
-            }
-            return _getContextProperties(context.Request, context.Response);
-        }
-
-        private bool ShouldTraceRequest(IOwinContext context)
-        {
-            if (_shouldTraceRequest == null)
-                return true;
-            return _shouldTraceRequest(context.Request, context.Response);
-        }
-
-        private void TraceRequest(
+        private async Task TrackRequest(
             string method,
             string path,
             Uri uri,
@@ -94,7 +102,7 @@ namespace ApplicationInsights.OwinExtensions
                 requestStartDate,
                 duration,
                 responseCode.ToString(),
-                responseCode < 400)
+                success: responseCode < 400)
             {
                 Id = OperationIdContext.Get(),
                 HttpMethod = method,
@@ -103,7 +111,7 @@ namespace ApplicationInsights.OwinExtensions
 
             telemetry.Context.Operation.Name = name;
 
-            foreach (var kvp in GetContextProperties(context))
+            foreach (var kvp in await _configuration.GetAdditionalContextProperties(context))
                 telemetry.Context.Properties.Add(kvp);
 
             _client.TrackRequest(telemetry);

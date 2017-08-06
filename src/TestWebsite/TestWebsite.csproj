@@ -26,6 +26,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <ApplicationInsightsResourceId>/subscriptions/5cd3d5a8-0eae-41ac-878e-9c00ce4a0825/resourcegroups/Default-ApplicationInsights-CentralUS/providers/microsoft.insights/components/TestWebsite</ApplicationInsightsResourceId>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

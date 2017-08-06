@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppBuilderExtensionsBackwardCompatibilityTests.cs" />
     <Compile Include="HttpRequestTrackingMiddlewareTests.cs" />
     <Compile Include="OwinIntegrationTests.cs" />
     <Compile Include="OperationContextTelemetryInitializerTests.cs" />

@@ -49,9 +49,18 @@ namespace ApplicationInsights.OwinExtensions.Tests
                 DependencyTrackingTelemetryModule.Initialize(config);
 
                 app.UseApplicationInsights(
-                    middlewareConfiguration:
-                        new OperationIdContextMiddlewareConfiguration {ShouldTryGetIdFromHeader = true},
-                    telemetryConfiguration: config);
+                    new RequestTrackingConfiguration
+                    {
+                        TelemetryConfiguration = config,
+                        GetAdditionalContextProperties = async ctx =>
+                        {
+                            // do some async stuff
+                            await Task.Delay(100);
+                            return Enumerable.Empty<KeyValuePair<string, string>>();
+                        }
+                    },    
+                    new OperationIdContextMiddlewareConfiguration {ShouldTryGetIdFromHeader = true}
+                    );
             }
 
             private static void SignalOnRequestCompletion(IAppBuilder app)
