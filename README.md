@@ -79,8 +79,10 @@ app.RestoreOperationIdContext();
 You can pass a parameter to the `UseApplicationInsights` method specifying request filtering callback.
 
 ```csharp
-appBuilder.UseApplicationInsights(shouldTraceRequest: 
-	(req, res) => req.Method != "OPTIONS");
+appBuilder.UseApplicationInsights(new RequestTrackingConfiguration
+{
+    ShouldTrackRequest = ctx => Task.FromResult(ctx.Request.Method != "OPTIONS")
+});
 ```
 
 ### Adding custom properties to telemetry
@@ -90,8 +92,12 @@ to the request or the response, you can alternatively specify additional `Teleme
 Application Insights telemetry configuration.
 
 ```csharp
-appBuilder.UseApplicationInsights(getContextProperties: 
-	(req, res) => new[] { new KeyValuePair<string, string>("Content-type", req.ContentType) });
+appBuilder.UseApplicationInsights(new RequestTrackingConfiguration
+{
+    GetAdditionalContextProperties = ctx =>
+        Task.FromResult(new[] { new KeyValuePair<string, string>("Content-Type", ctx.Request.ContentType)}
+            .AsEnumerable())
+});
 ```
 
 ### Passing OperationId via header
@@ -170,6 +176,11 @@ First middleware in the pipeline establishes a new Operation Id context (`Guid.N
 If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
+
+### 0.5.0
+* [BREAKING] (possibly) - `UseApplicationInsights` now accepts an instance of `RequestTrackingConfiguration` instead of separate configuration parameters. Old overload has been deprecated
+* [FEATURE] - `IOwinContext` is passed to request filter and additional properties extractor delegates
+* [FEATURE] - request filter and additional properties extractor delegates are now async 
 
 ### 0.4.1
 * [FIX] Fixed #17 - incorrect logging when exception thrown from downstream OWIN pipeline
