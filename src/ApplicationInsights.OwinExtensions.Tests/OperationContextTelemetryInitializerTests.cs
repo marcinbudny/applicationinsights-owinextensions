@@ -25,6 +25,18 @@ namespace ApplicationInsights.OwinExtensions.Tests
         }
 
         [Fact]
+        public void Can_Set_Parent_Operation_Id_On_Telemetry()
+        {
+            var telemetry = new TraceTelemetry();
+            var sut = new OperationIdTelemetryInitializer();
+
+            OperationIdContext.Create();
+            sut.Initialize(telemetry);
+
+            telemetry.Context.Operation.ParentId.Should().Be(OperationIdContext.Get());
+        }
+
+        [Fact]
         public void Should_Not_Change_Operation_Id_If_Context_Not_Created()
         {
             var telemetry = new TraceTelemetry();

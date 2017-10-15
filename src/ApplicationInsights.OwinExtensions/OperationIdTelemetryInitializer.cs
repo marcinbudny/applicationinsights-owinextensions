@@ -8,7 +8,7 @@ namespace ApplicationInsights.OwinExtensions
         public void Initialize(ITelemetry telemetry)
         {
             if (OperationIdContext.Get() != null)
-                telemetry.Context.Operation.Id = OperationIdContext.Get();
+                telemetry.Context.Operation.Id = telemetry.Context.Operation.ParentId = OperationIdContext.Get();
         }
     }
 }

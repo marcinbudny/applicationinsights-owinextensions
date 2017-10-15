@@ -177,6 +177,9 @@ If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
 
+### 0.5.1
+* [FIX] - #24 temporary fix for operation parent id not set on telemetry 
+
 ### 0.5.0
 * [BREAKING] (possibly) - `UseApplicationInsights` now accepts an instance of `RequestTrackingConfiguration` instead of separate configuration parameters. Old overload has been deprecated
 * [FEATURE] - `IOwinContext` is passed to request filter and additional properties extractor delegates
