@@ -44,6 +44,8 @@
   <ItemGroup>
     <Compile Include="AppBuilderExtensionsBackwardCompatibilityTests.cs" />
     <Compile Include="HttpRequestTrackingMiddlewareTests.cs" />
+    <Compile Include="OperationContextStoredInOwinContextScopeTests.cs" />
+    <Compile Include="OperationContextTests.cs" />
     <Compile Include="OwinIntegrationTests.cs" />
     <Compile Include="OperationContextTelemetryInitializerTests.cs" />
     <Compile Include="OperationIdContextMiddlewareTests.cs" />
@@ -54,7 +56,7 @@
     <Compile Include="Utils\MockTelemetryChannel.cs" />
     <Compile Include="Utils\NoopMiddleware.cs" />
     <Compile Include="Utils\OlabogaException.cs" />
-    <Compile Include="Utils\OperationIdCollectingMiddleware.cs" />
+    <Compile Include="Utils\OperationContextCollectingMiddleware.cs" />
     <Compile Include="Utils\TelemetryConfigurationBuilder.cs" />
     <Compile Include="Utils\ThrowingMiddleware.cs" />
     <Compile Include="WebApiIntegrationTests.cs" />

@@ -55,7 +55,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                         GetAdditionalContextProperties = async ctx =>
                         {
                             // do some async stuff
-                            await Task.Delay(100);
+                            await Task.Delay(100).ConfigureAwait(false);
                             return Enumerable.Empty<KeyValuePair<string, string>>();
                         }
                     },    
@@ -85,7 +85,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                     else
                     {
                         using (var client = new HttpClient())
-                            await client.GetAsync("http://google.com");
+                            await client.GetAsync("http://google.com").ConfigureAwait(false);
 
 
                         context.Response.StatusCode = 200;

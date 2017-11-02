@@ -5,7 +5,7 @@ namespace ApplicationInsights.OwinExtensions.Tests.Utils
 {
     public class TelemetryConfigurationBuilder
     {
-        private TelemetryConfiguration _configuration = new TelemetryConfiguration();
+        private readonly TelemetryConfiguration _configuration = new TelemetryConfiguration();
 
         public TelemetryConfigurationBuilder()
         {

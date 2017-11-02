@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using ApplicationInsights.OwinExtensions.Tests.Utils;
 using FluentAssertions;
 using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Owin;
 using Moq;
 using Xunit;
@@ -53,6 +52,45 @@ namespace ApplicationInsights.OwinExtensions.Tests
             telemetry.ResponseCode.Should().Be("200");
             telemetry.Success.Should().BeTrue();
 
+        }
+
+        [Fact]
+        public async Task Should_Establish_New_OperationContext_With_ReqestId_As_ParentId()
+        {
+            // given
+            var context = new MockOwinContextBuilder().Build();
+
+            var configuration = new TelemetryConfigurationBuilder().Build();
+
+            var actual = new OperationContextCollectingMiddleware();
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    actual,
+                    new RequestTrackingConfiguration
+                    {
+                        TelemetryConfiguration = configuration,
+                        RequestIdFactory = _ => "requestid"
+                    }),
+                new OperationIdContextMiddlewareConfiguration
+                {
+                    OperationIdFactory = _ => "operationid"
+                });
+
+            // when
+            await sut.Invoke(context);
+
+            // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
+
+            var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
+            telemetry.Should().NotBeNull();
+            telemetry.Id.Should().Be("requestid");
+
+            actual.ParentOperationIdFromAmbientContext.Should().Be("requestid");
+            actual.ParentOperationIdFromEnvironment.Should().Be("requestid");
+            actual.OperationIdFromEnvironment.Should().Be("operationid");
+            actual.OperationIdFromAmbientContext.Should().Be("operationid");
         }
 
         [Fact]
@@ -266,7 +304,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         }
 
         [Fact]
-        public async Task On_Exception_Should_Pass_It_Further()
+        public void On_Exception_Should_Pass_It_Further()
         {
             // given
             var configuration = new TelemetryConfigurationBuilder().Build();
@@ -288,7 +326,9 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // given
             var context = new MockOwinContextBuilder().Build();
 
-            var configuration = new TelemetryConfigurationBuilder().Build();
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithTelemetryInitializer(new OperationIdTelemetryInitializer())
+                .Build();
 
 
             var sut = new OperationIdContextMiddleware(
@@ -573,7 +613,10 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // given
             var context = new MockOwinContextBuilder().Build();
 
-            var configuration = new TelemetryConfigurationBuilder().Build();
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithTelemetryInitializer(new OperationIdTelemetryInitializer())
+                .Build();
+
 
 
             var sut = new OperationIdContextMiddleware(

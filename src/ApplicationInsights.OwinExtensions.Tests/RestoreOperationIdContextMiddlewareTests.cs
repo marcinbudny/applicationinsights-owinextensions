@@ -1,49 +1,43 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using ApplicationInsights.OwinExtensions.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 
 namespace ApplicationInsights.OwinExtensions.Tests
 {
-    public class RestoreOperationIdContextMiddlewareTests : IDisposable
+    public class RestoreOperationIdContextMiddlewareTests
     {
-        public RestoreOperationIdContextMiddlewareTests()
-        {
-            OperationIdContext.Clear();
-        }
-
         [Fact]
         public async Task Can_Restore_Operation_Context_Id_From_Owin_Context()
         {
             var context = new MockOwinContext();
-            context.Set(Consts.OperationIdContextKey, "test");
+            context.Set(Consts.OperationIdContextKey, "opid");
+            context.Set(Consts.ParentOperationIdContextKey, "parentid");
 
-            var collector = new OperationIdCollectingMiddleware();
+            var collector = new OperationContextCollectingMiddleware();
             var sut = new RestoreOperationIdContextMiddleware(collector);
 
             await sut.Invoke(context);
 
-            collector.OperationIdFromAmbientContext.Should().Be("test");
+            collector.OperationIdFromAmbientContext.Should().Be("opid");
+            collector.ParentOperationIdFromAmbientContext.Should().Be("parentid");
         }
 
         [Fact]
         public async Task Should_Not_Substitue_Existing_Operation_Id_If_Context_Contains_Null()
         {
-            OperationIdContext.Set("test");
-            var context = new MockOwinContext();
+            using (new OperationContextScope("opid", "parentid"))
+            {
+                var context = new MockOwinContext();
 
-            var collector = new OperationIdCollectingMiddleware();
-            var sut = new RestoreOperationIdContextMiddleware(collector);
+                var collector = new OperationContextCollectingMiddleware();
+                var sut = new RestoreOperationIdContextMiddleware(collector);
 
-            await sut.Invoke(context);
+                await sut.Invoke(context);
 
-            collector.OperationIdFromAmbientContext.Should().Be("test");
-        }
-
-        public void Dispose()
-        {
-            OperationIdContext.Clear();
+                collector.OperationIdFromAmbientContext.Should().Be("opid");
+                collector.ParentOperationIdFromAmbientContext.Should().Be("parentid");
+            }
         }
     }
 }

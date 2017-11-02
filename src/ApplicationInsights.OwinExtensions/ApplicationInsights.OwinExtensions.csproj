@@ -44,9 +44,12 @@
   <ItemGroup>
     <Compile Include="AppBuilderExtension.cs" />
     <Compile Include="ComponentNameTelemetryInitializer.cs" />
+    <Compile Include="IdFactory.cs" />
     <Compile Include="IdGenerationStrategy.cs" />
     <Compile Include="Consts.cs" />
-    <Compile Include="OperationIdContext.cs" />
+    <Compile Include="OperationContext.cs" />
+    <Compile Include="OperationContextScope.cs" />
+    <Compile Include="OperationContextStoredInOwinContextScope.cs" />
     <Compile Include="OperationIdContextMiddleware.cs" />
     <Compile Include="OperationIdTelemetryInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

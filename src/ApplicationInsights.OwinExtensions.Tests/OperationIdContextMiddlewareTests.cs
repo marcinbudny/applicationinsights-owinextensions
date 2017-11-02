@@ -10,17 +10,22 @@ namespace ApplicationInsights.OwinExtensions.Tests
         [Fact]
         public async Task Can_Establish_Id_Context()
         {
-            var actual = new OperationIdCollectingMiddleware();
+            var actual = new OperationContextCollectingMiddleware();
 
             var sut = new OperationIdContextMiddleware(
                 actual,
-                new OperationIdContextMiddlewareConfiguration());
+                new OperationIdContextMiddlewareConfiguration
+                {
+                    OperationIdFactory = _ => "operationid"
+                });
 
             await sut.Invoke(new MockOwinContext());
 
-            actual.OperationIdFromAmbientContext.Should().NotBeNullOrEmpty();
-            actual.OperationIdFromAmbientContext.Should()
-                .Be(actual.OperationIdFromEnvironment);
+            actual.OperationIdFromAmbientContext.Should().Be("operationid");
+            actual.OperationIdFromEnvironment.Should().Be("operationid");
+
+            actual.ParentOperationIdFromAmbientContext.Should().Be("operationid");
+            actual.ParentOperationIdFromEnvironment.Should().Be("operationid");
         }
 
         [Fact]
@@ -35,7 +40,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             context.Get<string>(Consts.OperationIdContextKey).Should().BeNull();
-            OperationIdContext.Get().Should().BeNull();
+            context.Get<string>(Consts.ParentOperationIdContextKey).Should().BeNull();
+            OperationContext.Get().Should().BeNull();
         }
     }
 }
