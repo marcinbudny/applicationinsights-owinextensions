@@ -59,7 +59,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                             return Enumerable.Empty<KeyValuePair<string, string>>();
                         }
                     },    
-                    new OperationIdContextMiddlewareConfiguration {ShouldTryGetIdFromHeader = true}
+                    new OperationIdContextMiddlewareConfiguration { OperationIdFactory = IdFactory.FromHeader(Consts.OperationIdHeaderName) }
                     );
             }
 
