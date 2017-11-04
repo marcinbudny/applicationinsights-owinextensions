@@ -115,25 +115,8 @@ public class Startup
 	public void Configuration(IAppBuilder app)
 	{
 		app.UseApplicationInsights(			
-		  new OperationIdContexMiddlewareConfiguration {ShouldTryGetIdFromHeader = true});
+		  new OperationIdContexMiddlewareConfiguration { OperationIdFactory = IdFactory.FromHeader("X-My-Operation-Id") });
 		  
-		// rest of the config here...
-	}
-}
-```
-
-Default header name for Context.Operation.Id value is `X-Operation-Id`, but it can also be customized.
-
-```csharp
-public class Startup
-{
-	public void Configuration(IAppBuilder app)
-	{
-		app.UseApplicationInsights(			
-		  new OperationIdContextMiddlewareConfiguration {
-		  		ShouldTryGetIdFromHeader = true,
-				  OperationIdHeaderName = "Custom-Header-Name"});
-				  
 		// rest of the config here...
 	}
 }
@@ -150,12 +133,40 @@ using (var client = new HttpClient())
 		RequestUri = new Uri($"http://{serviceHost}:{servicePort}")
 	};
 
-	request.Headers.Add("X-Operation-Id", OperationIdContext.Get());
+	request.Headers.Add("X-My-Operation-Id", OperationContext.Get().OperationId);
 	await client.SendAsync(request);
 }
 ```
 
-The OperationIdContext is a static class storing current request Context.Operation.Id value.
+The OperationContext is a static class storing current request Context.Operation.Id value.
+
+
+### Changing how ids are generated
+
+By default, new ids are generated as Guids. You can change that by providing delegates in `OperationIdContextMiddlewareConfiguration.OperationIdFactory` and `RequestTrackingConfiguration.RequestIdFactory`.
+
+### Operation scope and parent operation id
+
+You can create sub-operations and manage the `OperationParentId` via the `OperationContextScope`.
+
+```csharp
+using (new OperationContextScope("operationId", "parentOperationId")) 
+{
+	// telemetries sent here will have specified ids set
+}
+```
+
+You should keep the same operation id for all requests, dependencies, etc. that make up a single logical operation you want to track. Change the parent operation id to create a tree of sub-operations. 
+
+If you are implementing a middleware, you may want to also save the new values in the OWIN environment dictionary, so that they can be restored via `RestoreOperationIdContext`. To learn more about parent operation id, [see this article](https://docs.microsoft.com/en-us/azure/application-insights/application-insights-correlation).
+
+```csharp
+using (new OperationContextScope("operationId", "parentOperationId")) 
+using (new OperationContextStoredInOwinContextScope(owinContext))
+{
+	// telemetries sent here will have specified ids set
+}
+```
 
 #### Optional steps
 
@@ -176,6 +187,11 @@ First middleware in the pipeline establishes a new Operation Id context (`Guid.N
 If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
+
+### 0.6.0
+* [BREAKING] - removed the `IdGenerationStrategy` - use `OperationIdContextMiddlewareConfiguration.OperationIdFactory` and `RequestTrackingConfiguration.RequestIdFactory`
+* [FEATURE] - parent operation id can be managed with `OperationContextScope`
+* [FEATURE] - establishing OperationId and RequestId can be customized and based on current OWIN context
 
 ### 0.5.1
 * [FIX] - #24 temporary fix for operation parent id not set on telemetry 
