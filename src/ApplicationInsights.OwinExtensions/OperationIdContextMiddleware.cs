@@ -1,12 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Owin;
 
 namespace ApplicationInsights.OwinExtensions
 {
     public class OperationIdContextMiddlewareConfiguration
     {
+        [Obsolete("Use OperationIdFactory property")]
         public bool ShouldTryGetIdFromHeader { get; set; } = false;
+        [Obsolete("Use OperationIdFactory property")]
         public string OperationIdHeaderName { get; set; } = Consts.OperationIdHeaderName;
+
+        public Func<IOwinContext, string> OperationIdFactory = IdFactory.NewGuid;
     }
 
     public class OperationIdContextMiddleware : OwinMiddleware
@@ -18,44 +23,21 @@ namespace ApplicationInsights.OwinExtensions
             OperationIdContextMiddlewareConfiguration configuration) : base(next)
         {
             _configuration = configuration ?? new OperationIdContextMiddlewareConfiguration();
+
+            // TODO: remove once obsolete configuration of opid header is removed
+            if (_configuration.ShouldTryGetIdFromHeader)
+                _configuration.OperationIdFactory = IdFactory.FromHeader(_configuration.OperationIdHeaderName);
         }
 
         public override async Task Invoke(IOwinContext context)
         {
-            InitializeOperationIdContext(context);
+            var operationId = _configuration.OperationIdFactory(context);
 
-            try
+            using (new OperationContextScope(operationId))
+            using (new OperationContextStoredInOwinContextScope(context))
             {
                 await Next.Invoke(context);
             }
-            finally
-            {
-                context.Set<string>(Consts.OperationIdContextKey, null);
-                OperationIdContext.Clear();
-            }
-        }
-
-        private void InitializeOperationIdContext(IOwinContext context)
-        {
-            string idContextKey;
-
-            if (_configuration.ShouldTryGetIdFromHeader && 
-                TryGetIdFromHeader(context, out idContextKey))
-            {
-                OperationIdContext.Set(idContextKey);
-            }
-            else
-            {
-                OperationIdContext.Create();
-            }
-
-            context.Set(Consts.OperationIdContextKey, OperationIdContext.Get());
-        }
-
-        private bool TryGetIdFromHeader(IOwinContext context, out string idContextKey)
-        {
-            idContextKey = context.Request?.Headers?.Get(_configuration.OperationIdHeaderName);
-            return idContextKey != null;
         }
     }
 }

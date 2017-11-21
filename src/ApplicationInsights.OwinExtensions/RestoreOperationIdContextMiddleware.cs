@@ -12,10 +12,13 @@ namespace ApplicationInsights.OwinExtensions
         public override async Task Invoke(IOwinContext context)
         {
             var operationId = context.Get<string>(Consts.OperationIdContextKey);
-            if(operationId != null)
-                OperationIdContext.Set(operationId);
+            var parentOperationId = context.Get<string>(Consts.ParentOperationIdContextKey);
 
-            await Next.Invoke(context);
+            if(operationId != null)
+                using(new OperationContextScope(operationId, parentOperationId))
+                    await Next.Invoke(context);
+            else
+                await Next.Invoke(context);
         }
     }
 }

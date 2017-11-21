@@ -1,39 +1,24 @@
-﻿using System;
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.ApplicationInsights.DataContracts;
 using Xunit;
 
 namespace ApplicationInsights.OwinExtensions.Tests
 {
-    public class OperationContextTelemetryInitializerTests : IDisposable
+    public class OperationContextTelemetryInitializerTests
     {
-        public OperationContextTelemetryInitializerTests()
-        {
-            OperationIdContext.Clear();
-        }
-
         [Fact]
-        public void Can_Set_Operation_Id_On_Telemetry()
+        public void Can_Set_Operation_Id_And_ParentId_On_Telemetry()
         {
             var telemetry = new TraceTelemetry();
             var sut = new OperationIdTelemetryInitializer();
 
-            OperationIdContext.Create();
-            sut.Initialize(telemetry);
+            using (new OperationContextScope("opid", "parentid"))
+            {
+                sut.Initialize(telemetry);
 
-            telemetry.Context.Operation.Id.Should().Be(OperationIdContext.Get());
-        }
-
-        [Fact]
-        public void Can_Set_Parent_Operation_Id_On_Telemetry()
-        {
-            var telemetry = new TraceTelemetry();
-            var sut = new OperationIdTelemetryInitializer();
-
-            OperationIdContext.Create();
-            sut.Initialize(telemetry);
-
-            telemetry.Context.Operation.ParentId.Should().Be(OperationIdContext.Get());
+                telemetry.Context.Operation.Id.Should().Be("opid");
+                telemetry.Context.Operation.ParentId.Should().Be("parentid");
+            }
         }
 
         [Fact]
@@ -48,11 +33,6 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             telemetry.Context.Operation.Id.Should().Be("test");
 
-        }
-
-        public void Dispose()
-        {
-            OperationIdContext.Clear();
         }
     }
 }

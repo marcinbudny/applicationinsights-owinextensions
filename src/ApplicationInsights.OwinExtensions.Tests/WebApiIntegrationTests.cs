@@ -25,7 +25,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task<string> Get()
         {
             using (var client = new HttpClient())
-                await client.GetAsync("http://google.com");
+                await client.GetAsync("http://google.com").ConfigureAwait(false);
 
             return "ok";
         }

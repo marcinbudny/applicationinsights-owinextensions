@@ -26,11 +26,11 @@ namespace ApplicationInsights.OwinExtensions
             {
                 TelemetryConfiguration = configuration,
                 ShouldTrackRequest = shouldTraceRequest != null 
-                    ? (IOwinContext cts) => Task.FromResult(shouldTraceRequest(cts.Request, cts.Response))
-                    : (Func<IOwinContext, Task<bool>>) null,
+                    ? ctx => Task.FromResult(shouldTraceRequest(ctx.Request, ctx.Response))
+                    : new RequestTrackingConfiguration().ShouldTrackRequest,
                 GetAdditionalContextProperties = getContextProperties != null 
-                    ? (IOwinContext ctx) => Task.FromResult(getContextProperties(ctx.Request, ctx.Response).AsEnumerable())
-                    : (Func<IOwinContext, Task<IEnumerable<KeyValuePair<string, string>>>>) null,
+                    ? ctx => Task.FromResult(getContextProperties(ctx.Request, ctx.Response).AsEnumerable())
+                    : new RequestTrackingConfiguration().GetAdditionalContextProperties,
             })
         {
         }
@@ -40,11 +40,6 @@ namespace ApplicationInsights.OwinExtensions
             RequestTrackingConfiguration configuration = null) : base(next)
         {
             _configuration = configuration ?? new RequestTrackingConfiguration();
-
-            _configuration.ShouldTrackRequest = _configuration.ShouldTrackRequest ?? (ctx => Task.FromResult(true));
-
-            _configuration.GetAdditionalContextProperties = _configuration.GetAdditionalContextProperties ?? 
-                (ctx => Task.FromResult(Enumerable.Empty<KeyValuePair<string, string>>()));
 
             _client = _configuration.TelemetryConfiguration != null 
                 ? new TelemetryClient(_configuration.TelemetryConfiguration) 
@@ -59,34 +54,49 @@ namespace ApplicationInsights.OwinExtensions
             var path = context.Request.Path.ToString();
             var uri = context.Request.Uri;
 
+            var requestId = _configuration.RequestIdFactory(context);
+            var requestParentId = OperationContext.Get()?.ParentOperationId;
+
             var requestStartDate = DateTimeOffset.Now;
             var stopWatch = new Stopwatch();
-            stopWatch.Start();
 
-            try
+            using (new OperationContextScope(
+                operationId: OperationContext.Get()?.OperationId ?? requestId,
+                parentOperationId: requestId))
+            using (new OperationContextStoredInOwinContextScope(context))
             {
-                await Next.Invoke(context);
 
-                stopWatch.Stop();
+                stopWatch.Start();
 
-                if (await _configuration.ShouldTrackRequest(context))
-                    await TrackRequest(method, path, uri, context, context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
+                try
+                {
+                    await Next.Invoke(context);
 
-            }
-            catch (Exception e)
-            {
-                stopWatch.Stop();
+                    stopWatch.Stop();
 
-                TraceException(e);
+                    if (await _configuration.ShouldTrackRequest(context))
+                        await TrackRequest(requestId, requestParentId, method, path, uri, context,
+                            context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
 
-                if (await _configuration.ShouldTrackRequest(context))
-                    await TrackRequest(method, path, uri, context, (int)HttpStatusCode.InternalServerError, requestStartDate, stopWatch.Elapsed);
+                }
+                catch (Exception e)
+                {
+                    stopWatch.Stop();
 
-                throw;
+                    TraceException(requestId, e);
+
+                    if (await _configuration.ShouldTrackRequest(context))
+                        await TrackRequest(requestId, requestParentId, method, path, uri, context,
+                            (int)HttpStatusCode.InternalServerError, requestStartDate, stopWatch.Elapsed);
+
+                    throw;
+                }
             }
         }
 
         private async Task TrackRequest(
+            string requestId,
+            string requestParentId,
             string method,
             string path,
             Uri uri,
@@ -104,11 +114,13 @@ namespace ApplicationInsights.OwinExtensions
                 responseCode.ToString(),
                 success: responseCode < 400)
             {
-                Id = OperationIdContext.Get(),
+                Id = requestId,
                 HttpMethod = method,
                 Url = uri
             };
 
+
+            telemetry.Context.Operation.ParentId = requestParentId;
             telemetry.Context.Operation.Name = name;
 
             foreach (var kvp in await _configuration.GetAdditionalContextProperties(context))
@@ -117,10 +129,10 @@ namespace ApplicationInsights.OwinExtensions
             _client.TrackRequest(telemetry);
         }
 
-        private void TraceException(Exception e)
+        private void TraceException(string requestId, Exception e)
         {
             var telemetry = new ExceptionTelemetry(e);
-            telemetry.Context.Operation.Id = OperationIdContext.Get();
+            telemetry.Context.Operation.ParentId = requestId;
 
             _client.TrackException(telemetry);
         }

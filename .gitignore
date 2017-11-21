@@ -103,3 +103,5 @@ src/.paket/
 src/.vs/
 src/packages/
 output/
+
+.idea

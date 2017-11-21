@@ -32,7 +32,7 @@ namespace ApplicationInsights.OwinExtensions.Tests.Utils
 
     public class MockOwinContextBuilder
     {
-        private MockOwinContext _context;
+        private readonly MockOwinContext _context;
 
         public MockOwinContextBuilder()
         {
