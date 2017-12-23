@@ -190,6 +190,7 @@ If you would like to contribute, please create a PR against the develop branch.
 
 ### 0.6.0
 * [BREAKING] - removed the `IdGenerationStrategy` - use `OperationIdContextMiddlewareConfiguration.OperationIdFactory` and `RequestTrackingConfiguration.RequestIdFactory`
+* [BREAKING] - at least .NET 4.6.1 is required now
 * [FEATURE] - parent operation id can be managed with `OperationContextScope`
 * [FEATURE] - establishing OperationId and RequestId can be customized and based on current OWIN context
 
