@@ -115,7 +115,7 @@ public class Startup
 	public void Configuration(IAppBuilder app)
 	{
 		app.UseApplicationInsights(			
-		  new OperationIdContexMiddlewareConfiguration { OperationIdFactory = IdFactory.FromHeader("X-My-Operation-Id") });
+		  new OperationIdContextMiddlewareConfiguration { OperationIdFactory = IdFactory.FromHeader("X-My-Operation-Id") });
 		  
 		// rest of the config here...
 	}
