@@ -28,6 +28,7 @@
     <ApplicationInsightsResourceId>/subscriptions/5cd3d5a8-0eae-41ac-878e-9c00ce4a0825/resourcegroups/Default-ApplicationInsights-CentralUS/providers/microsoft.insights/components/TestWebsite</ApplicationInsightsResourceId>
     <TargetFrameworkProfile />
     <Use64BitIISExpress />
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -159,6 +160,9 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.1'">
       <ItemGroup>
+        <Reference Include="System.Net.Http">
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="Microsoft.ApplicationInsights">
           <HintPath>..\packages\Microsoft.ApplicationInsights\lib\net46\Microsoft.ApplicationInsights.dll</HintPath>
           <Private>True</Private>
@@ -181,6 +185,9 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.1'">
       <ItemGroup>
+        <Reference Include="System.Runtime.Caching">
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="Microsoft.AI.DependencyCollector">
           <HintPath>..\packages\Microsoft.ApplicationInsights.DependencyCollector\lib\net45\Microsoft.AI.DependencyCollector.dll</HintPath>
           <Private>True</Private>
@@ -214,6 +221,9 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.1'">
       <ItemGroup>
+        <Reference Include="System.Management">
+          <Paket>True</Paket>
+        </Reference>
         <Reference Include="Microsoft.AI.WindowsServer">
           <HintPath>..\packages\Microsoft.ApplicationInsights.WindowsServer\lib\net45\Microsoft.AI.WindowsServer.dll</HintPath>
           <Private>True</Private>
@@ -236,12 +246,20 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.1'">
       <ItemGroup>
-        <Reference Include="System.Net.Http.Formatting">
-          <HintPath>..\packages\Microsoft.AspNet.WebApi.Client\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+        <Reference Include="Microsoft.AspNet.TelemetryCorrelation">
+          <HintPath>..\packages\Microsoft.AspNet.TelemetryCorrelation\lib\net45\Microsoft.AspNet.TelemetryCorrelation.dll</HintPath>
           <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
-        <Reference Include="System.Net.Http">
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.1'">
+      <ItemGroup>
+        <Reference Include="System.Net.Http.Formatting">
+          <HintPath>..\packages\Microsoft.AspNet.WebApi.Client\lib\net45\System.Net.Http.Formatting.dll</HintPath>
+          <Private>True</Private>
           <Paket>True</Paket>
         </Reference>
       </ItemGroup>
@@ -335,4 +353,23 @@
       </ItemGroup>
     </When>
   </Choose>
+  <Choose>
+    <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And $(TargetFrameworkVersion) == 'v4.6.1'">
+      <ItemGroup>
+        <Reference Include="mscorlib">
+          <Paket>True</Paket>
+        </Reference>
+        <Reference Include="System.Diagnostics.DiagnosticSource">
+          <HintPath>..\packages\System.Diagnostics.DiagnosticSource\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
+          <Private>True</Private>
+          <Paket>True</Paket>
+        </Reference>
+      </ItemGroup>
+    </When>
+  </Choose>
+  <Import Project="..\packages\Microsoft.ApplicationInsights.DependencyCollector\build\Microsoft.ApplicationInsights.DependencyCollector.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.DependencyCollector\build\Microsoft.ApplicationInsights.DependencyCollector.targets')" Label="Paket" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.PerfCounterCollector\build\Microsoft.ApplicationInsights.PerfCounterCollector.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.PerfCounterCollector\build\Microsoft.ApplicationInsights.PerfCounterCollector.targets')" Label="Paket" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.Web\build\Microsoft.ApplicationInsights.Web.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.Web\build\Microsoft.ApplicationInsights.Web.targets')" Label="Paket" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.WindowsServer\build\Microsoft.ApplicationInsights.WindowsServer.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.WindowsServer\build\Microsoft.ApplicationInsights.WindowsServer.targets')" Label="Paket" />
+  <Import Project="..\packages\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel\build\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.targets" Condition="Exists('..\packages\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel\build\Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel.targets')" Label="Paket" />
 </Project>

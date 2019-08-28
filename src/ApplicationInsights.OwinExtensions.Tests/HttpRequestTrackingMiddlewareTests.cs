@@ -208,7 +208,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
-            filteredContext.ShouldBeEquivalentTo(context);
+            filteredContext.Should().BeEquivalentTo(context);
         }
 
         [Fact]
@@ -244,7 +244,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
             telemetry.Should().NotBeNull();
 
-            telemetry.Context.Properties.Should().Contain(new[]
+            telemetry.Properties.Should().Contain(new[]
             {
                 new KeyValuePair<string, string>("key1", "val1"),
                 new KeyValuePair<string, string>("key2", "val2"),
@@ -292,7 +292,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
             telemetry.Should().NotBeNull();
 
-            telemetry.Context.Properties.Should().Contain(new[]
+            telemetry.Properties.Should().Contain(new[]
             {
                 new KeyValuePair<string, string>("key1", "val1"),
                 new KeyValuePair<string, string>("key2", "val2"),
@@ -317,7 +317,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // when / then
             Func<Task> sutAction = async () => await sut.Invoke(context);
 
-            sutAction.ShouldThrow<OlabogaException>();
+            sutAction.Should().Throw<OlabogaException>();
         }
 
         [Fact]
@@ -378,7 +378,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         [InlineData(500, false)]
         [InlineData(503, false)]
         [InlineData(599, false)]
-        public async Task Can_Send_Request_Telemetry(int statusCode, bool expectedSuccess)
+        public async Task Can_Send_Request_Telemetry_With_StatusCode(int statusCode, bool expectedSuccess)
         {
             // given
             var response = Mock.Of<IOwinResponse>(r => r.StatusCode == statusCode);
@@ -423,7 +423,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         [InlineData(500, false)]
         [InlineData(503, false)]
         [InlineData(599, false)]
-        public async Task LEGACY_Can_Send_Request_Telemetry(int statusCode, bool expectedSuccess)
+        public async Task LEGACY_Can_Send_Request_Telemetry_With_StatusCode(int statusCode, bool expectedSuccess)
         {
             // given
             var response = Mock.Of<IOwinResponse>(r => r.StatusCode == statusCode);
@@ -546,8 +546,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
             await sut.Invoke(context);
 
             // then
-            filteredRequest.ShouldBeEquivalentTo(context.Request);
-            filteredResponse.ShouldBeEquivalentTo(context.Response);
+            filteredRequest.Should().BeEquivalentTo(context.Request);
+            filteredResponse.Should().BeEquivalentTo(context.Response);
 
         }
 
@@ -580,7 +580,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
             telemetry.Should().NotBeNull();
 
-            telemetry.Context.Properties.Should().Contain(new[]
+            telemetry.Properties.Should().Contain(new[]
             {
                 new KeyValuePair<string, string>("key1", "val1"),
                 new KeyValuePair<string, string>("key2", "val2")
@@ -604,7 +604,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // when / then
             Func<Task> sutAction = async () => await sut.Invoke(context);
 
-            sutAction.ShouldThrow<OlabogaException>();
+            sutAction.Should().Throw<OlabogaException>();
         }
 
         [Fact]
