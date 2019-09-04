@@ -21,14 +21,14 @@ namespace ApplicationInsights.OwinExtensions.Tests
         {
             OperationContext.Set(new OperationContext.Item("opid", "parentid"));
 
-            OperationContext.Get().ShouldBeEquivalentTo(new OperationContext.Item("opid", "parentid"));
+            OperationContext.Get().Should().BeEquivalentTo(new OperationContext.Item("opid", "parentid"));
         }
 
         [Fact]
         public void Can_Establish_Scope()
         {
             using (new OperationContextScope("opid", "parentid"))
-                OperationContext.Get().ShouldBeEquivalentTo(new OperationContext.Item("opid", "parentid"));
+                OperationContext.Get().Should().BeEquivalentTo(new OperationContext.Item("opid", "parentid"));
 
             OperationContext.Get().Should().BeNull();
         }
@@ -38,11 +38,11 @@ namespace ApplicationInsights.OwinExtensions.Tests
         {
             using (new OperationContextScope("opid", "op1"))
             {
-                OperationContext.Get().ShouldBeEquivalentTo(new OperationContext.Item("opid", "op1"));
+                OperationContext.Get().Should().BeEquivalentTo(new OperationContext.Item("opid", "op1"));
                 using (new OperationContextScope("opid", "op2"))
-                    OperationContext.Get().ShouldBeEquivalentTo(new OperationContext.Item("opid", "op2"));
+                    OperationContext.Get().Should().BeEquivalentTo(new OperationContext.Item("opid", "op2"));
 
-                OperationContext.Get().ShouldBeEquivalentTo(new OperationContext.Item("opid", "op1"));
+                OperationContext.Get().Should().BeEquivalentTo(new OperationContext.Item("opid", "op1"));
             }
             OperationContext.Get().Should().BeNull();
         }
@@ -55,7 +55,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                 using (var client = new HttpClient())
                     await client.GetAsync("http://google.com").ConfigureAwait(false);
 
-                OperationContext.Get().ShouldBeEquivalentTo(new OperationContext.Item("opid", "op1"));
+                OperationContext.Get().Should().BeEquivalentTo(new OperationContext.Item("opid", "op1"));
             }
 
         }

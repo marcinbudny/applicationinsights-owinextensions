@@ -1,9 +1,7 @@
-﻿xunit
+xunit
 xunit.runner.console
 Moq
 FluentAssertions
-Microsoft.Owin
 Microsoft.Owin.SelfHost
 Microsoft.AspNet.WebApi.OwinSelfHost
-Microsoft.ApplicationInsights
 Microsoft.ApplicationInsights.DependencyCollector
