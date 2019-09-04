@@ -188,6 +188,9 @@ If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
 
+### 0.7.0
+* [MAINTENANCE] - bumped dependency on `Microsoft.ApplicationInsights` to >= 2.0
+
 ### 0.6.0
 * [BREAKING] - removed the `IdGenerationStrategy` - use `OperationIdContextMiddlewareConfiguration.OperationIdFactory` and `RequestTrackingConfiguration.RequestIdFactory`
 * [BREAKING] - at least .NET 4.6.1 is required now
