@@ -6,7 +6,7 @@ namespace ApplicationInsights.OwinExtensions
 {
     public static class DefaultFilters
     {
-        public static Task<bool> ShouldTraceException(IOwinContext context, Exception e)
+        public static Task<bool> ShouldTrackException(IOwinContext context, Exception e)
             => Task.FromResult(!(e is OperationCanceledException && context.Request.CallCancelled.IsCancellationRequested));
     }
 }

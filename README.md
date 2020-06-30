@@ -85,6 +85,18 @@ appBuilder.UseApplicationInsights(new RequestTrackingConfiguration
 });
 ```
 
+### Selectively tracing exceptions
+
+You can specify filter to ignore certain exceptions. By default, `OperationCancelledException` is ignored if client cancelled the request. If you specify your own filter, also include the cancelled request condition.
+
+```csharp
+appBuilder.UseApplicationInsights(new RequestTrackingConfiguration
+{
+    ShouldTrackException = ctx => async (ctx, e) => 
+        await DefaultFilters.ShouldTrackException(ctx, e) && !(e is MyException)
+});
+```
+
 ### Adding custom properties to telemetry
 
 You can also extend the traced telemetry with custom properties. Note: if your custom properties are not related
@@ -187,6 +199,9 @@ First middleware in the pipeline establishes a new Operation Id context (`Guid.N
 If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
+
+### 0.8.0
+* [FIX] - fix for `OperationCancelledException` and `TaskCancelledException` being logged in telemetry
 
 ### 0.7.0
 * [MAINTENANCE] - bumped dependency on `Microsoft.ApplicationInsights` to >= 2.0

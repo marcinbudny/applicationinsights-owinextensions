@@ -34,8 +34,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
-                    new NoopMiddleware(), 
-                    new RequestTrackingConfiguration { TelemetryConfiguration = configuration }),
+                    new NoopMiddleware(),
+                    new RequestTrackingConfiguration {TelemetryConfiguration = configuration}),
                 new OperationIdContextMiddlewareConfiguration());
 
             // when
@@ -51,7 +51,6 @@ namespace ApplicationInsights.OwinExtensions.Tests
             VerifyDefaultsOnRequestTelemetry(telemetry);
             telemetry.ResponseCode.Should().Be("200");
             telemetry.Success.Should().BeTrue();
-
         }
 
         [Fact]
@@ -104,7 +103,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
-                    new NoopMiddleware(), 
+                    new NoopMiddleware(),
                     new RequestTrackingConfiguration
                     {
                         TelemetryConfiguration = configuration,
@@ -148,8 +147,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // then
             var channel = configuration.TelemetryChannel as MockTelemetryChannel;
             channel.SentTelemetries.Count.Should().Be(0);
-        }        
-        
+        }
+
         [Fact]
         public async Task Can_Handle_Async_Filtering_Delegate()
         {
@@ -192,7 +191,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
-                    new NoopMiddleware(), 
+                    new NoopMiddleware(),
                     new RequestTrackingConfiguration
                     {
                         TelemetryConfiguration = configuration,
@@ -200,7 +199,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                         {
                             filteredContext = ctx;
                             return Task.FromResult(false);
-                        } 
+                        }
                     }),
                 new OperationIdContextMiddlewareConfiguration());
 
@@ -221,11 +220,11 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
-                    new NoopMiddleware(), 
+                    new NoopMiddleware(),
                     new RequestTrackingConfiguration
                     {
                         TelemetryConfiguration = configuration,
-                        GetAdditionalContextProperties = ctx => 
+                        GetAdditionalContextProperties = ctx =>
                             Task.FromResult(new[]
                             {
                                 new KeyValuePair<string, string>("key1", "val1"),
@@ -253,9 +252,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
             VerifyDefaultsOnRequestTelemetry(telemetry);
             telemetry.ResponseCode.Should().Be("200");
             telemetry.Success.Should().BeTrue();
-
         }
-        
+
         [Fact]
         public async Task Can_Handle_Async_Additional_Properties_Delegate()
         {
@@ -266,7 +264,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
-                    new NoopMiddleware(), 
+                    new NoopMiddleware(),
                     new RequestTrackingConfiguration
                     {
                         TelemetryConfiguration = configuration,
@@ -311,8 +309,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var context = new MockOwinContextBuilder().Build();
 
-            var sut = new HttpRequestTrackingMiddleware(new ThrowingMiddleware(), 
-                new RequestTrackingConfiguration { TelemetryConfiguration = configuration});
+            var sut = new HttpRequestTrackingMiddleware(new ThrowingMiddleware(),
+                new RequestTrackingConfiguration {TelemetryConfiguration = configuration});
 
             // when / then
             Func<Task> sutAction = async () => await sut.Invoke(context);
@@ -333,15 +331,16 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
-                    new ThrowingMiddleware(), new RequestTrackingConfiguration {TelemetryConfiguration = configuration}),
+                    new ThrowingMiddleware(),
+                    new RequestTrackingConfiguration {TelemetryConfiguration = configuration}),
                 new OperationIdContextMiddlewareConfiguration());
 
             // when
-            try 
+            try
             {
                 await sut.Invoke(context);
             }
-            catch(OlabogaException)
+            catch (OlabogaException)
             {
                 // ignored
             }
@@ -360,7 +359,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             exceptionTelemetry.Context.Operation.Id.Should().NotBeNullOrEmpty();
             exceptionTelemetry.Exception.Should().BeOfType<OlabogaException>();
         }
-        
+
         [Fact]
         public async Task Can_Filter_Exceptions_To_Trace()
         {
@@ -376,17 +375,18 @@ namespace ApplicationInsights.OwinExtensions.Tests
                 new HttpRequestTrackingMiddleware(
                     new ThrowingMiddleware(), new RequestTrackingConfiguration
                     {
-                        TelemetryConfiguration = configuration, 
-                        ShouldTraceException = (ctx, e) => Task.FromResult(!(e is OlabogaException))
+                        TelemetryConfiguration = configuration,
+                        ShouldTrackException = async (ctx, e) =>
+                            await DefaultFilters.ShouldTrackException(ctx, e) && !(e is OlabogaException)
                     }),
                 new OperationIdContextMiddlewareConfiguration());
 
             // when
-            try 
+            try
             {
                 await sut.Invoke(context);
             }
-            catch(OlabogaException)
+            catch (OlabogaException)
             {
                 // ignored
             }
@@ -398,14 +398,14 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
 
         [Theory]
-        [InlineData(200, true )]
-        [InlineData(201, true )]
-        [InlineData(204, true )]
-        [InlineData(299, true )]
-        [InlineData(300, true )]
-        [InlineData(301, true )]
-        [InlineData(302, true )]
-        [InlineData(399, true )]
+        [InlineData(200, true)]
+        [InlineData(201, true)]
+        [InlineData(204, true)]
+        [InlineData(299, true)]
+        [InlineData(300, true)]
+        [InlineData(301, true)]
+        [InlineData(302, true)]
+        [InlineData(399, true)]
         [InlineData(400, false)]
         [InlineData(401, false)]
         [InlineData(403, false)]
@@ -425,8 +425,8 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var configuration = new TelemetryConfigurationBuilder().Build();
 
-            var sut = new HttpRequestTrackingMiddleware(new NoopMiddleware(), 
-                new RequestTrackingConfiguration { TelemetryConfiguration = configuration});
+            var sut = new HttpRequestTrackingMiddleware(new NoopMiddleware(),
+                new RequestTrackingConfiguration {TelemetryConfiguration = configuration});
 
             // when
             await sut.Invoke(context);
@@ -437,20 +437,19 @@ namespace ApplicationInsights.OwinExtensions.Tests
             telemetry.Success.Should().Be(expectedSuccess);
         }
 
-        
-        
-         // TODO: legacy tests, remove once obsolete api is removed
-        
-        
+
+        // TODO: legacy tests, remove once obsolete api is removed
+
+
         [Theory]
-        [InlineData(200, true )]
-        [InlineData(201, true )]
-        [InlineData(204, true )]
-        [InlineData(299, true )]
-        [InlineData(300, true )]
-        [InlineData(301, true )]
-        [InlineData(302, true )]
-        [InlineData(399, true )]
+        [InlineData(200, true)]
+        [InlineData(201, true)]
+        [InlineData(204, true)]
+        [InlineData(299, true)]
+        [InlineData(300, true)]
+        [InlineData(301, true)]
+        [InlineData(302, true)]
+        [InlineData(399, true)]
         [InlineData(400, false)]
         [InlineData(401, false)]
         [InlineData(403, false)]
@@ -508,7 +507,6 @@ namespace ApplicationInsights.OwinExtensions.Tests
             VerifyDefaultsOnRequestTelemetry(telemetry);
             telemetry.ResponseCode.Should().Be("200");
             telemetry.Success.Should().BeTrue();
-
         }
 
         [Fact]
@@ -584,13 +582,11 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // then
             filteredRequest.Should().BeEquivalentTo(context.Request);
             filteredResponse.Should().BeEquivalentTo(context.Response);
-
         }
 
         [Fact]
         public async Task LEGACY_Should_Add_Properties_To_Request_Telemetry_Context_When_They_Are_Provided()
         {
-            
             // given
             var context = new MockOwinContextBuilder().Build();
 
@@ -654,18 +650,17 @@ namespace ApplicationInsights.OwinExtensions.Tests
                 .Build();
 
 
-
             var sut = new OperationIdContextMiddleware(
                 new HttpRequestTrackingMiddleware(
                     new ThrowingMiddleware(), configuration),
                 new OperationIdContextMiddlewareConfiguration());
 
             // when
-            try 
+            try
             {
                 await sut.Invoke(context);
             }
-            catch(OlabogaException)
+            catch (OlabogaException)
             {
                 // ignored
             }

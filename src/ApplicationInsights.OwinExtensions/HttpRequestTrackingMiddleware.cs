@@ -86,7 +86,7 @@ namespace ApplicationInsights.OwinExtensions
                 {
                     stopWatch.Stop();
                     
-                    if(await _configuration.ShouldTraceException(context, e))
+                    if(await _configuration.ShouldTrackException(context, e))
                         TraceException(requestId, e);
 
                     if (await _configuration.ShouldTrackRequest(context))
