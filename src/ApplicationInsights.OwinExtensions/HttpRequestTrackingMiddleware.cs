@@ -74,20 +74,24 @@ namespace ApplicationInsights.OwinExtensions
 
                     stopWatch.Stop();
 
+                    string statusCode = context.Response.StatusCode.ToString();
+                    var success = context.Response.StatusCode < 400;
+
                     if (await _configuration.ShouldTrackRequest(context))
                         await TrackRequest(requestId, requestParentId, method, path, uri, context,
-                            context.Response.StatusCode, requestStartDate, stopWatch.Elapsed);
+                            statusCode, success, requestStartDate, stopWatch.Elapsed);
 
                 }
                 catch (Exception e)
                 {
                     stopWatch.Stop();
-
-                    TraceException(requestId, e);
+                    
+                    if(await _configuration.ShouldTraceException(context, e))
+                        TraceException(requestId, e);
 
                     if (await _configuration.ShouldTrackRequest(context))
                         await TrackRequest(requestId, requestParentId, method, path, uri, context,
-                            (int)HttpStatusCode.InternalServerError, requestStartDate, stopWatch.Elapsed);
+                            "500", false, requestStartDate, stopWatch.Elapsed);
 
                     throw;
                 }
@@ -101,7 +105,8 @@ namespace ApplicationInsights.OwinExtensions
             string path,
             Uri uri,
             IOwinContext context, 
-            int responseCode, 
+            string responseCode,
+            bool success,
             DateTimeOffset requestStartDate, 
             TimeSpan duration)
         {
@@ -111,8 +116,8 @@ namespace ApplicationInsights.OwinExtensions
                 name,
                 requestStartDate,
                 duration,
-                responseCode.ToString(),
-                success: responseCode < 400)
+                responseCode,
+                success)
             {
                 Id = requestId,
                 HttpMethod = method,

@@ -19,7 +19,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                     OperationIdFactory = _ => "operationid"
                 });
 
-            await sut.Invoke(new MockOwinContext());
+            await sut.Invoke(new MockOwinContextBuilder().Build());
 
             actual.OperationIdFromAmbientContext.Should().Be("operationid");
             actual.OperationIdFromEnvironment.Should().Be("operationid");
@@ -31,7 +31,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         [Fact]
         public async Task Can_Clean_Context()
         {
-            var context = new MockOwinContext();
+            var context = new MockOwinContextBuilder().Build();
 
             var sut = new OperationIdContextMiddleware(
                 new NoopMiddleware(),

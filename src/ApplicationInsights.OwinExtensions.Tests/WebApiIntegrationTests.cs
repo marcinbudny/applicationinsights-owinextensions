@@ -25,7 +25,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         public async Task<string> Get()
         {
             using (var client = new HttpClient())
-                await client.GetAsync("http://google.com").ConfigureAwait(false);
+                await client.GetAsync("https://google.com").ConfigureAwait(false);
 
             return "ok";
         }
@@ -127,7 +127,10 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             Startup.RequestCompleted.WaitOne(1000);
 
-            var telemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is DependencyTelemetry);
+            var telemetry =
+                Startup.Channel.SentTelemetries.FirstOrDefault(t =>
+                    t is DependencyTelemetry d && d.Data == "https://google.com");
+
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be(Startup.ActualOperationId);
         }

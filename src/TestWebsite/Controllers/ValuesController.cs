@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -28,7 +29,15 @@ namespace TestWebsite.Controllers
         public Task GetException()
         {
             throw new Exception("olaboga!");
-        } 
+        }
+
+        [Route("slow")]
+        public async Task<string> GetSlowValue()
+        {
+            await Task.Delay(5000);
+            
+            return "slow action finished";
+        }
 
     }
 }

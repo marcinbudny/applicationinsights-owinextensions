@@ -11,10 +11,13 @@ namespace ApplicationInsights.OwinExtensions
     {
         public TelemetryConfiguration TelemetryConfiguration { get; set; }
 
-        public Func<IOwinContext, Task<bool>> ShouldTrackRequest { get; set; } = ctx => Task.FromResult(true);
+        public Func<IOwinContext, Task<bool>> ShouldTrackRequest { get; set; } = _ => Task.FromResult(true);
+
+        public Func<IOwinContext, Exception, Task<bool>> ShouldTraceException { get; set; } 
+            = DefaultFilters.ShouldTraceException;
 
         public Func<IOwinContext, Task<IEnumerable<KeyValuePair<string, string>>>> GetAdditionalContextProperties { get; set; }
-            = ctx => Task.FromResult(Enumerable.Empty<KeyValuePair<string, string>>());
+            = _ => Task.FromResult(Enumerable.Empty<KeyValuePair<string, string>>());
 
         public Func<IOwinContext, string> RequestIdFactory { get; set; } = IdFactory.NewGuid;
     }

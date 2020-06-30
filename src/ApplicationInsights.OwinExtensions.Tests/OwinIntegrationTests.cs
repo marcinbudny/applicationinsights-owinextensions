@@ -58,9 +58,10 @@ namespace ApplicationInsights.OwinExtensions.Tests
                             await Task.Delay(100).ConfigureAwait(false);
                             return Enumerable.Empty<KeyValuePair<string, string>>();
                         }
-                    },    
-                    new OperationIdContextMiddlewareConfiguration { OperationIdFactory = IdFactory.FromHeader(Consts.OperationIdHeaderName) }
-                    );
+                    },
+                    new OperationIdContextMiddlewareConfiguration
+                        {OperationIdFactory = IdFactory.FromHeader(Consts.OperationIdHeaderName)}
+                );
             }
 
             private static void SignalOnRequestCompletion(IAppBuilder app)
@@ -76,7 +77,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             {
                 app.Run(async context =>
                 {
-                    ActualOperationId = OperationIdContext.Get();
+                    ActualOperationId = OperationContext.Get()?.OperationId;
 
                     if (context.Request.Path.Value.EndsWith("exception"))
                     {
@@ -85,7 +86,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
                     else
                     {
                         using (var client = new HttpClient())
-                            await client.GetAsync("http://google.com").ConfigureAwait(false);
+                            await client.GetAsync("https://google.com").ConfigureAwait(false);
 
 
                         context.Response.StatusCode = 200;
@@ -130,7 +131,10 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             Startup.RequestCompleted.WaitOne(1000);
 
-            var telemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is DependencyTelemetry);
+            // need to filter by data, the request to http://localhost:7690 is also be reported as dependency telemetry
+            var telemetry =
+                Startup.Channel.SentTelemetries.FirstOrDefault(t =>
+                    t is DependencyTelemetry d && d.Data == "https://google.com");
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be(Startup.ActualOperationId);
         }
@@ -153,7 +157,9 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             Startup.RequestCompleted.WaitOne(1000);
 
-            var telemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is DependencyTelemetry);
+            var telemetry =
+                Startup.Channel.SentTelemetries.FirstOrDefault(t =>
+                    t is DependencyTelemetry d && d.Data == "https://google.com");
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be("passed_operation_id_key");
         }
@@ -172,7 +178,6 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var exceptionTelemetry = Startup.Channel.SentTelemetries.FirstOrDefault(t => t is ExceptionTelemetry);
             Assert.True(exceptionTelemetry != null, "Exception telemetry was not sent");
-
         }
 
         public void Dispose()

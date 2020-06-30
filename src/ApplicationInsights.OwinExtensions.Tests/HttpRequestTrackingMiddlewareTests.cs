@@ -360,6 +360,42 @@ namespace ApplicationInsights.OwinExtensions.Tests
             exceptionTelemetry.Context.Operation.Id.Should().NotBeNullOrEmpty();
             exceptionTelemetry.Exception.Should().BeOfType<OlabogaException>();
         }
+        
+        [Fact]
+        public async Task Can_Filter_Exceptions_To_Trace()
+        {
+            // given
+            var context = new MockOwinContextBuilder().Build();
+
+            var configuration = new TelemetryConfigurationBuilder()
+                .WithTelemetryInitializer(new OperationIdTelemetryInitializer())
+                .Build();
+
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    new ThrowingMiddleware(), new RequestTrackingConfiguration
+                    {
+                        TelemetryConfiguration = configuration, 
+                        ShouldTraceException = (ctx, e) => Task.FromResult(!(e is OlabogaException))
+                    }),
+                new OperationIdContextMiddlewareConfiguration());
+
+            // when
+            try 
+            {
+                await sut.Invoke(context);
+            }
+            catch(OlabogaException)
+            {
+                // ignored
+            }
+
+            // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
+            channel.SentTelemetries.Count(t => t is ExceptionTelemetry).Should().Be(0);
+        }
+
 
         [Theory]
         [InlineData(200, true )]
@@ -592,7 +628,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
         }
 
         [Fact]
-        public async Task LEGACY_On_Exception_Should_Pass_It_Further()
+        public void LEGACY_On_Exception_Should_Pass_It_Further()
         {
             // given
             var configuration = new TelemetryConfigurationBuilder().Build();
