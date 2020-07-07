@@ -63,7 +63,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
                 DependencyTrackingTelemetryModule = new DependencyTrackingTelemetryModule();
                 DependencyTrackingTelemetryModule.Initialize(telemetryConfig);
-                app.UseApplicationInsights(telemetryConfiguration: telemetryConfig);
+                app.UseApplicationInsights(new RequestTrackingConfiguration { TelemetryConfiguration = telemetryConfig});
             }
 
             private static void ConfigureWebApi(IAppBuilder app)
@@ -86,7 +86,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             {
                 app.Use(new Func<AppFunc, AppFunc>(next => (async env =>
                 {
-                    ActualOperationId = OperationIdContext.Get();
+                    ActualOperationId = OperationContext.Get().OperationId;
                     await next.Invoke(env);
                 })));
             }
@@ -129,7 +129,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var telemetry =
                 Startup.Channel.SentTelemetries.FirstOrDefault(t =>
-                    t is DependencyTelemetry d && d.Data == "https://google.com");
+                    t is DependencyTelemetry d && d.Name == "https://google.com");
 
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be(Startup.ActualOperationId);

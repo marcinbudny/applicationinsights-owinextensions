@@ -200,6 +200,9 @@ If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
 
+### 0.8.1
+* [FIX] - fix for dependencies issue introduced by 0.8.0, see #37
+
 ### 0.8.0
 * [FIX] - fix for `OperationCancelledException` and `TaskCancelledException` being logged in telemetry
 

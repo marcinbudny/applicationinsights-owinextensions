@@ -134,7 +134,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
             // need to filter by data, the request to http://localhost:7690 is also be reported as dependency telemetry
             var telemetry =
                 Startup.Channel.SentTelemetries.FirstOrDefault(t =>
-                    t is DependencyTelemetry d && d.Data == "https://google.com");
+                    t is DependencyTelemetry d && d.Name == "https://google.com");
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be(Startup.ActualOperationId);
         }
@@ -159,7 +159,7 @@ namespace ApplicationInsights.OwinExtensions.Tests
 
             var telemetry =
                 Startup.Channel.SentTelemetries.FirstOrDefault(t =>
-                    t is DependencyTelemetry d && d.Data == "https://google.com");
+                    t is DependencyTelemetry d && d.Name == "https://google.com");
             Assert.True(telemetry != null, "Dependency telemetry was not sent");
             telemetry.Context.Operation.Id.Should().Be("passed_operation_id_key");
         }
