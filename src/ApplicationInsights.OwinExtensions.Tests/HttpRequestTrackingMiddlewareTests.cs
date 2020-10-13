@@ -300,6 +300,52 @@ namespace ApplicationInsights.OwinExtensions.Tests
             telemetry.ResponseCode.Should().Be("200");
             telemetry.Success.Should().BeTrue();
         }
+        
+        [Fact]
+        public async Task Should_Send_Modified_Request_Telemetry_Context_When_Modified()
+        {
+            // given
+            var request = new Mock<IOwinRequest>();
+            request.SetupGet(x => x.User.Identity.Name)
+                .Returns("UserName");
+            
+            var context = new MockOwinContextBuilder()
+                .WithRequest(request.Object)
+                .Build();
+            
+            
+            var configuration = new TelemetryConfigurationBuilder().Build();
+
+            var sut = new OperationIdContextMiddleware(
+                new HttpRequestTrackingMiddleware(
+                    new NoopMiddleware(),
+                    new RequestTrackingConfiguration
+                    {
+                        TelemetryConfiguration = configuration,
+                        ModifyTelemetryContext = async (owinContext, aiContext) =>
+                        {
+                            aiContext.User.Id = owinContext.Request.User.Identity.Name;
+                            
+                            await Task.Delay(1);
+                        }
+                    }),
+                new OperationIdContextMiddlewareConfiguration());
+
+            // when
+            await sut.Invoke(context);
+
+            // then
+            var channel = configuration.TelemetryChannel as MockTelemetryChannel;
+            channel.SentTelemetries.Count.Should().Be(1);
+
+            var telemetry = channel.SentTelemetries.First() as RequestTelemetry;
+            telemetry.Should().NotBeNull();
+
+            telemetry.Context.User.Id.Should().Be("UserName");
+            
+            telemetry.ResponseCode.Should().Be("200");
+            telemetry.Success.Should().BeTrue();
+        }
 
         [Fact]
         public void On_Exception_Should_Pass_It_Further()
