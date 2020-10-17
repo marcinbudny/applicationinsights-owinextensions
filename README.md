@@ -216,6 +216,9 @@ If you would like to contribute, please create a PR against the develop branch.
 
 ## Release notes
 
+### 0.9.0
+* [FEATURE] - allow modifying telemetry context before sending, see #38
+
 ### 0.8.1
 * [FIX] - fix for dependencies issue introduced by 0.8.0, see #37
 
