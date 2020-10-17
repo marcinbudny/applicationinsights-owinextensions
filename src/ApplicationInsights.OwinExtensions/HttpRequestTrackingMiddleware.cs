@@ -131,6 +131,8 @@ namespace ApplicationInsights.OwinExtensions
             foreach (var kvp in await _configuration.GetAdditionalContextProperties(context))
                 telemetry.Properties.Add(kvp);
 
+            await _configuration.ModifyTelemetryContext(context, telemetry.Context);
+            
             _client.TrackRequest(telemetry);
         }
 

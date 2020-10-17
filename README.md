@@ -112,6 +112,22 @@ appBuilder.UseApplicationInsights(new RequestTrackingConfiguration
 });
 ```
 
+### Modifying TelemetryContext with data from OwinContext
+
+Additionally, you can enrich the telemetry context with information from the OwinContext. 
+You can use this to modify the user context of the Request Telemetry.
+
+```csharp
+appBuilder.UseApplicationInsights(new RequestTrackingConfiguration
+{
+    ModifyTelemetryContext = (owinContext, telemetryContext) =>
+		{
+			telemetryContext.User.Id = owinContext.Authentication.User.Identity.Name;
+			return Task.CompletedTask;
+		}
+});
+```
+
 ### Passing OperationId via header
 
 Let's presume that your system is build of many services communicating by http requests with each other . 
